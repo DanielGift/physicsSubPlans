@@ -1,73 +1,78 @@
 import type { ExperimentalDesignQuestion } from './experimentalDesignTypes';
 
-// Student-safe fields only. Restrictions must be airtight — the substitute cannot rule on edge cases.
+// Student-safe fields only. Restrictions must be airtight — the substitute cannot rule on
+// edge cases. One deliberately unusual prompt per unit (kinematics, forces, energy,
+// momentum, rotation, oscillations) — measuring something strange enough to force real
+// thinking rather than a familiar textbook setup.
 
 export const experimentalDesignQuestions: ExperimentalDesignQuestion[] = [
   {
-    id: 'ED-RES-001',
-    prompt:
-      'You are given a small rubber ball, a meter stick, and a stopwatch. Design an experiment to measure the coefficient of restitution of the ball bouncing off a hard floor (the ratio of rebound height to drop height).',
-    restrictions: [
-      'No photogates or motion sensors — timing and length measurements only.',
-      'The ball must be dropped, not thrown.',
-    ],
-    requiredUnits: ['energy'],
-    difficulty: 1,
-  },
-  {
     id: 'ED-KIN-001',
-    prompt: 'Using only a stopwatch and a meter stick, design an experiment to measure the average speed of a toy car as it rolls down a ramp.',
+    prompt:
+      'Design an experiment to determine the terminal velocity of a falling coffee filter (or a single sheet of paper), using no sensor faster than your own reaction time.',
     restrictions: [
-      'No motion sensors or photogates.',
-      'You may mark positions on the ramp but may not touch the car once it is released.',
+      'No photogates, motion sensors, or smartphone apps.',
+      'Only a stopwatch and a meter stick may be used for measurement.',
+      'You must justify why your measurement actually reflects terminal velocity, and not the filter still speeding up.',
     ],
     requiredUnits: ['kinematics'],
-    difficulty: 2,
-  },
-  {
-    id: 'ED-MAS-001',
-    prompt: 'Without moving it off the ground, design an experiment to determine the mass of a classroom table.',
-    restrictions: [
-      'No scale may be placed under any part of the table, including under individual legs.',
-      'You may not lift the table — defined as supporting its full weight — at any point.',
-      "You may not look up or use the manufacturer's specifications.",
-    ],
-    requiredUnits: ['forces', 'rotation'],
     difficulty: 4,
   },
   {
-    id: 'ED-PRJ-001',
-    prompt: "A ball is thrown across the room. Design an experiment to determine its average speed while it was in the air, without measuring its position while it is in flight.",
-    restrictions: [
-      'You may measure the launch point and the landing point.',
-      'You may measure the total flight time.',
-      "You may not track or measure the ball's position at any instant while it is airborne.",
-    ],
-    requiredUnits: ['kinematics'],
-    difficulty: 3,
-  },
-  {
-    id: 'ED-GRV-001',
+    id: 'ED-FOR-001',
     prompt:
-      'Design an experiment to measure the acceleration due to gravity, g, using only a stopwatch, a meter stick, and small objects available in a classroom. Propose at least two genuinely different methods, based on different physics.',
-    restrictions: ['No smartphone apps or sensors — only the stopwatch and meter stick may be used for measurement.'],
-    requiredUnits: ['kinematics'],
-    topicTags: ['free fall', 'pendulum', 'springs', 'inclined plane', 'Atwood machine'],
+      'A bicycle wheel is spun by hand and raised off the ground so it coasts to a stop on its own. Design an experiment to determine whether the wheel is slowed more by air resistance or by friction at its axle.',
+    restrictions: [
+      'You may not disassemble, oil, or otherwise alter the wheel or its axle.',
+      'You may not touch the wheel once it is spinning, except to bring it to a stop between trials.',
+      'Only a stopwatch and simple markings on the wheel may be used for measurement.',
+    ],
+    requiredUnits: ['forces'],
     difficulty: 5,
   },
   {
+    id: 'ED-ENE-001',
+    prompt:
+      "Design an experiment to determine the elastic potential energy stored in a stretched rubber band at its maximum stretch, without cutting it or using any force sensor.",
+    restrictions: [
+      "The rubber band may not be cut, and you may not assume it obeys Hooke's law without checking.",
+      'No electronic force or motion sensors — only a stopwatch, a meter stick, and objects of known mass.',
+    ],
+    requiredUnits: ['energy'],
+    difficulty: 4,
+  },
+  {
+    id: 'ED-MOM-001',
+    prompt:
+      'Design an experiment to determine the mass of a rolling object, using no scale, balance, or any device that measures weight directly.',
+    restrictions: [
+      'No scale or balance of any kind, and no comparing the object by hand-feel to a known weight.',
+      'You may use a stopwatch, a meter stick, and other objects of precisely known mass.',
+    ],
+    requiredUnits: ['momentum'],
+    difficulty: 4,
+  },
+  {
     id: 'ED-ROT-001',
-    prompt: 'Without disassembling it, design an experiment to determine the moment of inertia of an irregularly shaped rigid object about a specified axis through its center of mass.',
-    restrictions: ['You may not cut, weigh piece-by-piece, or otherwise disassemble the object.'],
+    prompt:
+      'You have two eggs that look identical — one raw, one hard-boiled — but you do not know which is which. Design an experiment to determine which egg is which, using only a flat table.',
+    restrictions: [
+      'You may not crack, weigh, candle (shine a light through), or otherwise open either egg.',
+      'The two eggs must be treated identically in every trial, so the comparison is fair.',
+    ],
     requiredUnits: ['rotation'],
     difficulty: 4,
   },
   {
-    id: 'ED-PWR-001',
+    id: 'ED-OSC-001',
     prompt:
-      'A researcher defines a property M for a person climbing a staircase: M = (mass * g * height climbed) / (time taken). Design an experiment to measure M for a student climbing a specific staircase. Then answer: if two students of different mass carry the same backpack up the same staircase in the same time, do they have the same M?',
-    restrictions: ['You may not use any equipment other than a scale, a meter stick or known step height, and a stopwatch.'],
-    requiredUnits: ['energy'],
-    difficulty: 3,
+      'Design an experiment to determine the mass of a small, irregularly-shaped rock, using a rubber band and a stopwatch — no scale, and you may not compare it by hand to a known weight.',
+    restrictions: [
+      'No scale or balance of any kind.',
+      'You may use rubber bands, a stopwatch, a meter stick, and objects of precisely known mass.',
+      'Keep oscillations small enough that you are not relying on the rubber band being linear at large stretch.',
+    ],
+    requiredUnits: ['oscillations'],
+    difficulty: 4,
   },
 ];

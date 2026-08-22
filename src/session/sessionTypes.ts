@@ -1,4 +1,4 @@
-import type { ActivityId, PhysicsUnit, ReasoningSkill } from '../types';
+import type { ActivityId, PhysicsUnit } from '../types';
 
 export interface LessonSessionRound {
   roundId: string;
@@ -11,7 +11,6 @@ export interface LessonSession {
   seed: string;
   createdAt: string;
   selectedUnits?: PhysicsUnit[];
-  selectedSkills?: ReasoningSkill[];
   rounds: LessonSessionRound[];
   currentRoundIndex: number;
   currentQuestionIndex: number;

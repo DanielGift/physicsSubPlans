@@ -2,9 +2,16 @@ import type { PhysicsCourtQuestion } from './physicsCourtTypes';
 
 // Student-safe fields only. Verdicts, explanations, and every other adjudicated
 // field live in the answer key module and must never be imported here (see BUILD-SPEC.md §3).
+//
+// Unit distribution: 10 kinematics, 10 forces, 8 energy, 8 momentum, 6 rotation, 6
+// oscillations (48 slots; 47 unique questions, since PC-ENE-002 is cross-tagged
+// energy+rotation and counts toward both). Gravitation is not its own unit in the
+// current AP Physics C: Mechanics framework — former gravitation claims were folded
+// into Forces (orbital dynamics as a circular-motion/force application) and Energy
+// (orbital and potential energy); see PC-FOR-004, PC-FOR-005, PC-ENE-004, PC-ENE-005.
 
 export const physicsCourtQuestions: PhysicsCourtQuestion[] = [
-  // Kinematics
+  // ===== Kinematics (10) =====
   {
     id: 'PC-KIN-001',
     setup: 'A particle moves along some path with a differentiable position function and nonzero velocity.',
@@ -30,14 +37,71 @@ export const physicsCourtQuestions: PhysicsCourtQuestion[] = [
     topicTags: ['circular motion'],
     difficulty: 3,
   },
+  {
+    id: 'PC-KIN-004',
+    setup: "A particle's position is a differentiable function of time on an open time interval.",
+    claim: "If the particle's velocity is positive at every instant on that interval, its position is strictly increasing on that interval.",
+    requiredUnits: ['kinematics'],
+    topicTags: ['1D motion', 'derivatives'],
+    difficulty: 3,
+    requiresCalculus: true,
+  },
+  {
+    id: 'PC-KIN-005',
+    setup: "A particle's velocity is increasing throughout a time interval (i.e., its value is getting larger, in the calculus sense).",
+    claim: 'The particle is moving in the positive direction throughout that interval.',
+    requiredUnits: ['kinematics'],
+    topicTags: ['1D motion'],
+    difficulty: 3,
+  },
+  {
+    id: 'PC-KIN-006',
+    setup: "A particle's speed is strictly increasing throughout a time interval.",
+    claim: "The particle's velocity changes sign at some instant during that interval.",
+    requiredUnits: ['kinematics'],
+    topicTags: ['1D motion'],
+    difficulty: 4,
+  },
+  {
+    id: 'PC-KIN-007',
+    setup: 'A projectile is launched at some angle above the horizontal, with no air resistance, and later returns to its launch height.',
+    claim: 'At the moment it returns to launch height, its speed equals its launch speed.',
+    requiredUnits: ['kinematics'],
+    topicTags: ['projectile motion'],
+    difficulty: 3,
+  },
+  {
+    id: 'PC-KIN-008',
+    setup: 'A particle undergoes projectile motion under uniform gravity, with no air resistance.',
+    claim: 'At the top of its trajectory (maximum height), the particle\'s velocity is zero.',
+    requiredUnits: ['kinematics'],
+    topicTags: ['projectile motion', 'vectors'],
+    difficulty: 3,
+  },
+  {
+    id: 'PC-KIN-009',
+    setup: 'Two particles are at the same position at t = 0, and have the same speed as each other at every instant after that.',
+    claim: 'The two particles are at the same position as each other at every instant after t = 0.',
+    requiredUnits: ['kinematics'],
+    topicTags: ['vectors'],
+    difficulty: 4,
+  },
+  {
+    id: 'PC-KIN-010',
+    setup: 'A particle moves along a straight line with nonzero, constant acceleration.',
+    claim: "The particle's velocity is zero at more than one instant.",
+    requiredUnits: ['kinematics'],
+    topicTags: ['1D motion'],
+    difficulty: 3,
+  },
 
-  // Forces
+  // ===== Forces (10) =====
   {
     id: 'PC-FOR-001',
     setup: 'An object moves to the right while its speed is decreasing.',
     claim: 'At least one force acting on the object has a leftward component.',
     requiredUnits: ['forces'],
-    topicTags: ['vectors', 'Newton\'s second law'],
+    topicTags: ['vectors', "Newton's second law"],
     difficulty: 3,
   },
   {
@@ -56,8 +120,64 @@ export const physicsCourtQuestions: PhysicsCourtQuestion[] = [
     topicTags: ['normal force', 'apparent weight'],
     difficulty: 4,
   },
+  {
+    id: 'PC-FOR-004',
+    setup: 'An astronaut is in a circular orbit around a planet.',
+    claim: 'The astronaut is accelerating.',
+    requiredUnits: ['forces'],
+    topicTags: ['orbits', 'circular motion'],
+    difficulty: 3,
+  },
+  {
+    id: 'PC-FOR-005',
+    setup: 'Two satellites, each in its own circular orbit (possibly around different central bodies), have the same orbital period.',
+    claim: 'The two satellites have the same orbital radius.',
+    requiredUnits: ['forces'],
+    topicTags: ["Kepler's third law", 'circular motion'],
+    difficulty: 3,
+  },
+  {
+    id: 'PC-FOR-006',
+    setup: 'An object is in equilibrium (zero net force) while exactly three nonzero forces act on it.',
+    claim: 'Drawn tip-to-tail in any order, the three force vectors form a closed triangle.',
+    requiredUnits: ['forces'],
+    topicTags: ['vectors', 'equilibrium'],
+    difficulty: 3,
+  },
+  {
+    id: 'PC-FOR-007',
+    setup: 'A horizontal force is applied to a block resting on a rough horizontal surface, and the block does not move.',
+    claim: 'The applied force equals the maximum possible static friction force.',
+    requiredUnits: ['forces'],
+    topicTags: ['friction'],
+    difficulty: 3,
+  },
+  {
+    id: 'PC-FOR-008',
+    setup: 'An object of constant mass moves in a straight line at a constant, nonzero velocity.',
+    claim: 'The net force on the object points in the direction of motion.',
+    requiredUnits: ['forces'],
+    topicTags: ["Newton's first law"],
+    difficulty: 3,
+  },
+  {
+    id: 'PC-FOR-009',
+    setup: 'A block sits on a frictionless inclined plane at angle θ, and a rope pulls it up the incline.',
+    claim: 'The normal force on the block equals mg cos(θ).',
+    requiredUnits: ['forces'],
+    topicTags: ['inclined plane', 'vectors'],
+    difficulty: 4,
+  },
+  {
+    id: 'PC-FOR-010',
+    setup: 'A block sits on top of a second block, which sits on a frictionless floor. A horizontal force is applied to the bottom block, and both blocks accelerate together with no relative sliding between them.',
+    claim: "The friction force between the two blocks is what accelerates the top block.",
+    requiredUnits: ['forces'],
+    topicTags: ['friction', "Newton's second law"],
+    difficulty: 4,
+  },
 
-  // Energy
+  // ===== Energy (8; PC-ENE-002 is cross-tagged with rotation) =====
   {
     id: 'PC-ENE-001',
     setup: 'The net work done on an object over some displacement is zero.',
@@ -82,8 +202,49 @@ export const physicsCourtQuestions: PhysicsCourtQuestion[] = [
     topicTags: ['work'],
     difficulty: 3,
   },
+  {
+    id: 'PC-ENE-004',
+    setup: 'A point lies strictly inside a uniform, hollow spherical shell of mass, at a location where the shell\'s gravitational field is zero.',
+    claim: 'The gravitational potential at that point (due to the shell) is zero.',
+    requiredUnits: ['energy'],
+    topicTags: ['shell theorem', 'potential energy'],
+    difficulty: 5,
+    requiresCalculus: true,
+  },
+  {
+    id: 'PC-ENE-005',
+    setup: 'A body is in a circular orbit under gravity alone, with potential energy defined so U = 0 at infinite separation.',
+    claim: "The body's total mechanical energy equals both $-K$ and $U/2$.",
+    requiredUnits: ['energy'],
+    topicTags: ['orbital energy'],
+    difficulty: 4,
+  },
+  {
+    id: 'PC-ENE-006',
+    setup: 'A spring with nonzero mass is compressed and then released, launching a block across a frictionless horizontal surface.',
+    claim: "All of the spring's stored elastic potential energy converts into the block's kinetic energy.",
+    requiredUnits: ['energy'],
+    topicTags: ['elastic potential energy'],
+    difficulty: 4,
+  },
+  {
+    id: 'PC-ENE-007',
+    setup: 'A ball is thrown from the edge of a cliff, in some direction that is not specified, and lands at the base of the cliff, a height h below the launch point, with no air resistance.',
+    claim: "The ball's kinetic energy at landing is greater than its kinetic energy at launch, by exactly mgh.",
+    requiredUnits: ['energy'],
+    topicTags: ['conservation'],
+    difficulty: 3,
+  },
+  {
+    id: 'PC-ENE-008',
+    setup: 'A conservative force acts on an object that traverses a closed path, returning to its starting point.',
+    claim: "The force is perpendicular to the object's velocity at every point along the path.",
+    requiredUnits: ['energy'],
+    topicTags: ['conservative forces', 'work'],
+    difficulty: 5,
+  },
 
-  // Momentum
+  // ===== Momentum (8) =====
   {
     id: 'PC-MOM-001',
     setup: 'The total momentum of a two-object system is constant over some time interval.',
@@ -109,8 +270,48 @@ export const physicsCourtQuestions: PhysicsCourtQuestion[] = [
     difficulty: 5,
     requiresCalculus: true,
   },
+  {
+    id: 'PC-MOM-004',
+    setup: 'A constant net external force acts on a constant-mass system for a time interval Δt.',
+    claim: "The change in the system's total momentum equals the force times Δt.",
+    requiredUnits: ['momentum'],
+    topicTags: ['impulse'],
+    difficulty: 3,
+  },
+  {
+    id: 'PC-MOM-005',
+    setup: 'Two objects of different mass, with nonzero relative velocity, collide and stick together (a perfectly inelastic collision).',
+    claim: 'The collision conserves kinetic energy.',
+    requiredUnits: ['momentum'],
+    topicTags: ['collisions'],
+    difficulty: 4,
+  },
+  {
+    id: 'PC-MOM-006',
+    setup: 'Two objects collide in two dimensions, and total momentum is conserved along both the x- and y-axes separately.',
+    claim: 'The collision is elastic.',
+    requiredUnits: ['momentum'],
+    topicTags: ['collisions', 'vectors'],
+    difficulty: 3,
+  },
+  {
+    id: 'PC-MOM-007',
+    setup: 'An initially stationary object explodes into two fragments under only internal forces.',
+    claim: 'The two fragments move off with equal speeds.',
+    requiredUnits: ['momentum'],
+    topicTags: ['conservation'],
+    difficulty: 3,
+  },
+  {
+    id: 'PC-MOM-008',
+    setup: 'A system of particles experiences only internal forces — no external forces act at any instant.',
+    claim: "The velocity of the system's center of mass is constant.",
+    requiredUnits: ['momentum'],
+    topicTags: ['center of mass', "Newton's third law"],
+    difficulty: 4,
+  },
 
-  // Rotation
+  // ===== Rotation (6; plus PC-ENE-002 above is cross-tagged here too) =====
   {
     id: 'PC-ROT-001',
     setup: 'A rigid body is free to rotate about any axis (not constrained to a fixed axis) and experiences zero net torque about its center of mass.',
@@ -143,43 +344,16 @@ export const physicsCourtQuestions: PhysicsCourtQuestion[] = [
     topicTags: ['rolling motion'],
     difficulty: 5,
   },
-
-  // Gravitation
   {
-    id: 'PC-GRA-001',
-    setup: 'An astronaut is in a circular orbit around a planet.',
-    claim: 'The astronaut is accelerating.',
-    requiredUnits: ['gravitation'],
-    topicTags: ['orbits'],
-    difficulty: 3,
-  },
-  {
-    id: 'PC-GRA-002',
-    setup: 'A point lies strictly inside a uniform, hollow spherical shell of mass, at a location where the shell\'s gravitational field is zero.',
-    claim: "The gravitational potential at that point (due to the shell) is zero.",
-    requiredUnits: ['gravitation'],
-    topicTags: ['shell theorem', 'potential'],
-    difficulty: 5,
-    requiresCalculus: true,
-  },
-  {
-    id: 'PC-GRA-003',
-    setup: 'A body is in a circular orbit under gravity alone, with potential energy defined so U = 0 at infinite separation.',
-    claim: "The body's total mechanical energy equals both $-K$ and $U/2$.",
-    requiredUnits: ['gravitation'],
-    topicTags: ['orbital energy'],
+    id: 'PC-ROT-005',
+    setup: 'A rigid body rolls without slipping down an incline from rest, reaching the bottom with some center-of-mass speed v.',
+    claim: "The body's total kinetic energy at the bottom depends only on its total mass and v — not on how its mass is distributed.",
+    requiredUnits: ['rotation'],
+    topicTags: ['rolling motion', 'rotational energy'],
     difficulty: 4,
   },
-  {
-    id: 'PC-GRA-004',
-    setup: 'Two satellites, each in its own circular orbit (possibly around different central bodies), have the same orbital period.',
-    claim: 'The two satellites have the same orbital radius.',
-    requiredUnits: ['gravitation'],
-    topicTags: ["Kepler's third law"],
-    difficulty: 3,
-  },
 
-  // Oscillations
+  // ===== Oscillations (6) =====
   {
     id: 'PC-OSC-001',
     setup: 'An object undergoes ideal simple harmonic motion and passes through the equilibrium position.',
@@ -211,5 +385,21 @@ export const physicsCourtQuestions: PhysicsCourtQuestion[] = [
     requiredUnits: ['oscillations'],
     topicTags: ['SHM', 'vectors'],
     difficulty: 4,
+  },
+  {
+    id: 'PC-OSC-005',
+    setup: "A simple pendulum's period is doubled, at the same location (same g).",
+    claim: 'Its length must have doubled too.',
+    requiredUnits: ['oscillations'],
+    topicTags: ['pendulum', 'proportional reasoning'],
+    difficulty: 3,
+  },
+  {
+    id: 'PC-OSC-006',
+    setup: 'Two ideal mass-spring oscillators have the same total mechanical energy.',
+    claim: 'The two oscillators have the same amplitude.',
+    requiredUnits: ['oscillations'],
+    topicTags: ['SHM', 'energy'],
+    difficulty: 3,
   },
 ];

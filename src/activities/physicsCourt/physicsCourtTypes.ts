@@ -3,7 +3,7 @@ import type { GraphDefinition, PhysicsUnit, Verdict } from '../../types';
 export interface PhysicsCourtQuestion {
   id: string; // PC-KIN-001
   claim: string; // may contain LaTeX
-  setup?: string; // situation, stated separately from the claim under trial
+  setup?: string; // the statement, stated separately from the claim under trial
   requiredUnits: PhysicsUnit[];
   topicTags?: string[];
   difficulty: 1 | 2 | 3 | 4 | 5;
@@ -23,25 +23,9 @@ export interface PhysicsCourtAnswer {
   teacherNotes?: string;
 }
 
-export type PhysicsCourtRoundId = 'verdict' | 'prosecution' | 'defense' | 'rewrite';
-
-export const PHYSICS_COURT_ROUND_IDS: PhysicsCourtRoundId[] = [
-  'verdict',
-  'prosecution',
-  'defense',
-  'rewrite',
-];
-
-/** Round eligibility is derived from the verdict, never hand-tagged. See BUILD-SPEC.md §4. */
-export function isEligibleForRound(roundId: PhysicsCourtRoundId, answer: PhysicsCourtAnswer): boolean {
-  switch (roundId) {
-    case 'verdict':
-      return true;
-    case 'prosecution':
-      return answer.verdict === 'sometimes';
-    case 'defense':
-      return answer.verdict === 'always';
-    case 'rewrite':
-      return (answer.verdict === 'sometimes' || answer.verdict === 'never') && Boolean(answer.validRewrite);
-  }
-}
+/** Presentation labels for the class: internally still always/sometimes/never (Verdict). */
+export const VERDICT_DISPLAY_LABEL: Record<Verdict, string> = {
+  always: 'Always',
+  sometimes: 'Maybe',
+  never: 'Never',
+};

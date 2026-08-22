@@ -3,24 +3,18 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 // Student-facing components must never import the answer key module (BUILD-SPEC.md §3). This
-// walks src/ and asserts that only answer-key files, TeacherAnswerPanel.tsx, anything under a
-// teacher/ directory, and physicsCourtGenerator.ts are allowed to mention "answers" at all.
+// walks src/ and asserts that only answer-key files, PhysicsCourtConclusion.tsx, and
+// AnswerReveal.tsx are allowed to mention "answers" at all.
 //
-// physicsCourtGenerator.ts is the one deliberate exception: prosecution/defense/rewrite round
-// eligibility is derived from verdict (BUILD-SPEC.md §4), which only exists in the answer key,
-// so the generator has to read it. It is not a rendering component and never exposes a verdict
-// to the student beyond which round a question lands in — which the derived-eligibility design
-// already requires — and it reads the module via a lazy `await import(...)` so the data still
-// doesn't ship in the initial bundle.
+// These are the reveal step of each activity, shown to the whole room on request — there is
+// no more hidden teacher-only view — and both read the answer key via a lazy
+// `await import(...)` so the data still doesn't ship in the initial bundle.
 
 const SRC_ROOT = join(__dirname, '..');
 
 function isAllowed(path: string): boolean {
   return (
-    path.endsWith('/answers.ts') ||
-    path.endsWith('TeacherAnswerPanel.tsx') ||
-    path.includes('/teacher/') ||
-    path.endsWith('physicsCourtGenerator.ts')
+    path.endsWith('/answers.ts') || path.endsWith('PhysicsCourtConclusion.tsx') || path.endsWith('AnswerReveal.tsx')
   );
 }
 
@@ -40,7 +34,7 @@ function walk(dir: string): string[] {
 }
 
 describe('answer-import isolation', () => {
-  it('only answers.ts, TeacherAnswerPanel.tsx, and teacher/ files may mention "answers"', () => {
+  it('only answers.ts and PhysicsCourtConclusion.tsx may mention "answers"', () => {
     const offenders: string[] = [];
     for (const file of walk(SRC_ROOT)) {
       if (isAllowed(file)) continue;

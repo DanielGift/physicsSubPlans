@@ -1,12 +1,39 @@
 # Substitute Physics
 
-A static React site holding three self-running AP Physics C: Mechanics substitute activities. A
+A static React site holding two self-running AP Physics C: Mechanics substitute activities. A
 substitute with no physics background opens the site, checks off what the class has already
-learned, picks an activity, and runs an 80-minute class by following on-screen timing. The
-substitute never solves, judges, or explains anything — that's by design (see `CONTENT-RULES.md`
-and `BUILD-SPEC.md` for the full rationale).
+learned, picks an activity, and runs the lesson on a projector for the whole room. There is no
+separate teacher view or hidden toggle — every screen is meant to be seen by the class, and the
+site always renders at projector-friendly sizing (see `CONTENT-RULES.md` and `BUILD-SPEC.md` for
+the original rationale; the "Since the original build" section below covers what changed and why).
 
 This README is written so it's usable without reading any React.
+
+## Since the original build
+
+`BUILD-SPEC.md` and `CONTENT-RULES.md` describe the original design — three activities, including
+"Alien Physics." Since then:
+
+- **Alien Physics was removed from the site.** A worksheet-based, math-focused activity (made-up
+  laws, solved with calculus/algebra rather than real physics) turned out to fit a printed
+  document better than an interactive page. Its question bank became the basis for a standalone
+  `.docx` worksheet instead — see `Alien Physics Worksheet.docx` in this folder. `ActivityId` now
+  has two values (`physics-court`, `experimental-design`), and the twelve-value `ReasoningSkill`
+  union is gone along with it, since nothing else used it.
+- **Teacher Mode is gone.** There is no hidden toggle, no separate `TeacherAnswerPanel`, and no
+  Bank Browser. Every answer key reveal is now just an on-demand step in the normal flow, visible
+  to the whole room (`AnswerReveal.tsx` for Experimental Design, `PhysicsCourtConclusion.tsx` for
+  Physics Court's built-in conclusion step).
+- **Projector sizing is the only mode.** There's no toggle for it — the base type scale in
+  `tokens.css` *is* the projector scale, everywhere, always.
+- **The "Before you start" onboarding screen is gone** for Experimental Design. Setup goes
+  straight into the worksheet. Physics Court has its own two-screen intro instead (see below).
+- **Gravitation is not its own unit.** It isn't a unit in the current AP Physics C: Mechanics
+  framework. `PhysicsUnit` has six values now (kinematics, forces, energy, momentum, rotation,
+  oscillations) — see the Physics Court section for where its content went.
+- **Both remaining activities dropped their round structure**: Physics Court runs one continuous,
+  non-stop cycle instead of four rounds; Experimental Design runs a worksheet with exactly one
+  prompt per unit instead of four difficulty-banded rounds.
 
 ## Commands
 
@@ -45,12 +72,11 @@ This is configured for a GitHub Pages **project page** — a site served from
 
 ```
 src/
-  activities/            one folder per activity (physicsCourt, alienPhysics, experimentalDesign)
+  activities/            one folder per activity (physicsCourt, experimentalDesign)
     registry.ts          the list the home page renders from
-  components/            shared, activity-agnostic UI (LessonShell, Timer, MathContent, ...)
-  session/               LessonSession type, localStorage persistence, and generateSession()
+  components/            shared, activity-agnostic UI (AnswerReveal, Timer, MathContent, ...)
+  session/               LessonSession type + localStorage persistence, reused loosely by both
   utilities/             pure logic: seeded RNG, the balanced sampler
-  teacher/               Teacher Mode context + the cross-activity Bank Browser
 scripts/validate.ts      content consistency checks — npm run validate
 ```
 
@@ -59,28 +85,34 @@ Each activity owns its own schema and generation logic under `src/activities/<na
 | File | Contents |
 |---|---|
 | `<name>Types.ts` | The question/answer TypeScript interfaces for this activity. |
-| `questions.ts` | **Student-safe fields only.** Everything a student may see. |
+| `questions.ts` | **Student-safe fields only.** Everything shown before the reveal. |
 | `answers.ts` | Verdicts, explanations, and every other adjudicated field. |
-| `<name>Generator.ts` | Pure, React-free functions that turn a seed + selections into rounds. |
-| `<Name>Setup.tsx` | The screen where a substitute checks off units/skills and hits Start. |
-| `<Name>.tsx` | The activity's top-level component (setup → instructions → lesson). |
+| `<name>Generator.ts` | Pure, React-free functions that turn a seed + selections into a worksheet/cycle. |
+| `<Name>Setup.tsx` | The screen where a substitute checks off units and hits Start. |
+| `<Name>.tsx` | The activity's top-level component. |
+
+The two activities don't share a "lesson shell" or round-navigator component — Physics Court is a
+live cycle, Experimental Design is a worksheet, and they ended up different enough that a shared
+abstraction wasn't worth it. What they *do* still share: `session/useSession.ts` and
+`session/sessionTypes.ts` for localStorage persistence and resume, and `utilities/rng.ts` /
+`utilities/balancedSample.ts` for seeded, reproducible generation.
 
 ### Why questions and answers are separate files
 
-`questions.ts` is imported by every student-facing screen. `answers.ts` is imported **only** by
-`TeacherAnswerPanel` and the Bank Browser, and only via a lazy `await import(...)` — so the
-answer key ships as its own JS chunk, not bundled into the code every visitor downloads. A Vitest
-test (`src/activities/answerIsolation.test.ts`) enforces this by scanning the source tree for the
-literal string `"answers"` and failing if it turns up anywhere it shouldn't. `answers.ts` files,
-`TeacherAnswerPanel.tsx`, anything under `teacher/`, and `physicsCourtGenerator.ts` are the only
-allowed exceptions — that last one is explained inline in that test file and in the Physics Court
-section below.
+`questions.ts` is imported everywhere. `answers.ts` is imported **only** by the reveal step —
+`AnswerReveal.tsx` for Experimental Design, `PhysicsCourtConclusion.tsx` for Physics Court — and
+only via a lazy `await import(...)`, so the answer key ships as its own JS chunk, not bundled into
+the code every visitor downloads on page load. There is no separate hidden "teacher-only" view
+anymore: the reveal is just the next step in the same flow, available to whoever is running the
+lesson. A Vitest test (`src/activities/answerIsolation.test.ts`) enforces the separation by
+scanning the source tree for the literal string `"answers"` and failing if it turns up anywhere it
+shouldn't — `answers.ts` files, `AnswerReveal.tsx`, and `PhysicsCourtConclusion.tsx` are the only
+allowed exceptions.
 
-## Prerequisite tags: `requiredUnits` and `requiredSkills` are AND, not OR
+## Prerequisite tags: `requiredUnits` is AND, not OR
 
-Every question lists the units (Physics Court, Experimental Design) or reasoning skills (Alien
-Physics) it depends on. **Every single one of those must be checked off** for the question to be
-eligible — it is not "eligible if the class has covered any of these."
+Every question lists the units it depends on. **Every single one of those must be checked off**
+for the question to be eligible — it is not "eligible if the class has covered any of these."
 
 ```ts
 requiredUnits: ['energy', 'rotation']
@@ -92,37 +124,34 @@ of that question) hasn't been taught yet. Selecting more units only ever adds el
 it never removes any.
 
 `topicTags` is different: it's free-text and descriptive only ("circular motion", "SHM"), shown
-to the teacher for context, and **never** used to decide eligibility.
+on screen for context, and **never** used to decide eligibility.
 
-## How rounds are chosen: the balanced sampler
+## The balanced sampler
 
-`src/utilities/balancedSample.ts` builds one pool per selected unit/skill, puts each question
-(even a multi-unit one) into the pool for its *scarcest* required unit, shuffles each pool with a
-seeded RNG, and round-robins across pools until the round's target count is filled or every pool
-runs dry. It never shuffles the whole bank and slices off the top — that would let one heavily
-stocked unit crowd out a thinly stocked one.
+`src/utilities/balancedSample.ts` builds one pool per selected unit, puts each question (even a
+multi-unit one) into the pool for its *scarcest* required unit, shuffles each pool with a seeded
+RNG, and round-robins across pools until the target count is filled or every pool runs dry. It
+never shuffles the whole bank and slices off the top — that would let one heavily stocked unit
+crowd out a thinly stocked one. Physics Court uses it directly; Experimental Design's one-per-unit
+case only needs the plain `shuffle` helper from `utilities/rng.ts`.
 
-**Same seed + same selections → the identical lesson, every time.** That's what lets a teacher
-type a seed from one class section into Teacher Mode on another and run the two sections in sync.
-If no seed is given, a short one like `k7m2-q4x9` is generated so it's easy to read aloud and
-retype.
-
-**Shortage handling never throws and never repeats a question.** If a round can't be filled to
-its usual count, it just runs shorter and a note appears in the lesson header (e.g. *"This round
-has 6 questions instead of the usual 8."*). If a round comes up completely empty, it's skipped
-for the student and noted in Teacher Mode. If the *total* eligible pool for an activity is under 4
-questions, the Start button on the setup screen is disabled with an explanation, instead of
-generating a broken lesson.
+**Same seed + same selections → the identical worksheet or cycle, every time.** That's what lets
+you type a seed from one class section into another section's Advanced Options and run the two
+sections in sync. If no seed is given, a short one like `k7m2-q4x9` is generated so it's easy to
+read aloud and retype — it's always shown in the header.
 
 ## Physics Court
 
 **Location:** `src/activities/physicsCourt/`
 
-Students see a `setup` (the situation) and a `claim` (the assertion under trial), and argue
-whether the claim is `always`, `sometimes`, or `never` true.
+Students see a `setup` — the **statement**, shown in blue — and a `claim` — shown in red — and
+the class debates whether the claim is **Always**, **Maybe**, or **Never** true as a result of the
+statement (that's the class-facing framing; internally the `Verdict` type is still
+`'always' | 'sometimes' | 'never'`, mapped to those labels by `VERDICT_DISPLAY_LABEL` in
+`physicsCourtTypes.ts`).
 
 ```ts
-// questions.ts — what a student sees
+// questions.ts — shown during the debate
 {
   id: 'PC-KIN-003',
   setup: 'A particle moves at constant speed around a circle of fixed, nonzero radius.',
@@ -132,7 +161,7 @@ whether the claim is `always`, `sometimes`, or `never` true.
   difficulty: 3,
 }
 
-// answers.ts — teacher-only, lazy-loaded
+// answers.ts — revealed on "Reveal conclusion", lazy-loaded
 'PC-KIN-003': {
   verdict: 'never',
   assumptions: ['Speed is constant and nonzero.', 'Radius is fixed and nonzero.', 'Motion is planar circular motion.'],
@@ -142,68 +171,88 @@ whether the claim is `always`, `sometimes`, or `never` true.
 }
 ```
 
-### Round eligibility is derived from verdict, not hand-tagged
+### Units: 47 questions, gravitation folded in
 
-| Round | Eligible questions |
-|---|---|
-| `verdict` | any |
-| `prosecution` | `verdict === 'sometimes'` only |
-| `defense` | `verdict === 'always'` only |
-| `rewrite` | `verdict === 'sometimes'` or `'never'`, **and** a `validRewrite` is present |
+`PhysicsUnit` has six values — gravitation isn't one of them in the current AP Physics C:
+Mechanics framework. The bank targets a specific distribution: **10 kinematics, 10 forces, 8
+energy, 8 momentum, 6 rotation, 6 oscillations** (`PC-ENE-002` is cross-tagged energy+rotation and
+counts toward both, so 47 unique questions cover 48 "slots" — see the unit-distribution test in
+`physicsCourtGenerator.test.ts`, which locks these exact counts in). The four former-gravitation
+claims were folded into the unit their physics actually belongs to, not discarded:
 
-There is no `roundType` field anywhere in the data — a question's verdict alone determines which
-rounds it can appear in. This is also the one documented exception to the answers-separation
-rule above: `physicsCourtGenerator.ts` has to read `answers.ts` (via a lazy `await import`) to
-know each question's verdict before it can route it into a round. It never shows a verdict to the
-student directly — only which round a question landed in, which the design already reveals by
-being in that round at all.
+- `PC-FOR-004` (astronaut in orbit is accelerating) and `PC-FOR-005` (Kepler's third law) → **Forces**,
+  since both come from setting gravity equal to the required centripetal force.
+- `PC-ENE-004` (shell theorem: field vs. potential) and `PC-ENE-005` (orbital energy, E = -K = U/2) →
+  **Energy**, since both are fundamentally about potential/mechanical energy.
 
-## Alien Physics
+### One continuous cycle, not four rounds
 
-**Location:** `src/activities/alienPhysics/`
+Physics Court used to run four sequential rounds (Verdict/Prosecution/Defense/Rewrite), each
+capped to a small count. It now runs a single, non-stop cycle instead, so a class period is never
+cut short by an artificial limit:
 
-Every law needed to solve a problem is stated on screen — no real-world physics fact may be
-required unless its skill tag was explicitly selected (`requiredSkills`, same AND semantics as
-`requiredUnits` above). `questionType` is one of `decode | calculation | error_analysis | graph |
-conservation | synthesis`. The four named rounds (Decode, Calculation, Error Analysis, Synthesis)
-absorb `graph` questions into Decode and `conservation` questions into Calculation, since reading
-a graph is a decoding skill and a conservation problem is fundamentally a calculation — see the
-comment in `alienPhysicsGenerator.ts`.
+1. **Presentation** — the statement (blue) and claim (red) appear. The class debates until it
+   reaches a unanimous class vote.
+2. Click **Reveal conclusion** — the actual verdict, explanation, misconception, and (if one
+   exists) a valid rewrite appear, via `PhysicsCourtConclusion.tsx`.
+3. Click **Next statement** — a new statement/claim appears, and the cycle repeats.
 
-For `error_analysis` questions, the fictional student's flawed numbered steps
-(`flawedSolution: string[]`) are shown to the class — that's the whole point of the exercise. The
-answer to *which* step is wrong (`firstBadStepIndex`) lives in `answers.ts`, not in `questions.ts`,
-since that index **is** the answer.
+There is no round boundary and no "lesson complete" screen — `PhysicsCourt.tsx` keeps a growing,
+shuffled list of question IDs in `session.rounds[0].questionIds` and tops it up automatically
+(`physicsCourtGenerator.ts`'s `shuffleLap`) whenever the class is a couple of questions from
+running out. Each "lap" through the eligible pool is a fresh balanced shuffle, seeded from
+`` `${sessionSeed}:lap${lapIndex}` `` so a resumed session regenerates the exact same lap it was
+on rather than replaying lap 0. A substitute ends the class with the **End lesson** button in the
+header, whenever the period is over — there's no natural endpoint to wait for.
+
+`PhysicsCourtConclusion.tsx` is the one exception to the answers-separation rule above: it's the
+reveal step of the cycle, so it has to read `answers.ts` (via a lazy `await import`) — there's no
+more separate hidden view, this is just the next screen everyone sees.
+
+### Two intro screens, shown once per fresh start
+
+Starting a lesson (not resuming one) shows two screens before the first statement, each its own
+small component:
+
+1. **`PhysicsCourtSubIntro.tsx`** — for the substitute. Explains the facilitation job: get the
+   class to a unanimous consensus vote before revealing, let discussion run at least ~2 minutes,
+   no physics knowledge required.
+2. **`PhysicsCourtStudentIntro.tsx`** — meant to be read by the class (it says so on screen).
+   Explains the blue statement / red claim convention, that the class needs to reach a unanimous
+   consensus before asking the substitute to reveal, and that notes/devices aren't allowed.
+
+Resuming an in-progress session skips both (the class has already seen them this lesson).
 
 ## Experimental Design
 
 **Location:** `src/activities/experimentalDesign/`
 
 Students design — but never run — an experiment under explicit, airtight restrictions
-(`restrictions: string[]`). The four rounds are Warm-up, Restricted, Hard, and Define The Thing.
-Only Warm-up (`difficulty <= 2`) and Hard (`difficulty >= 4`) carry an enforced difficulty band;
-"Restricted" and "Define The Thing" are presentational round labels, not a hand-tagged content
-category, since `topicTags` is descriptive-only and is never used for filtering (same rule as
-everywhere else in this app) — see the comment in `experimentalDesignGenerator.ts` for the full
-reasoning.
+(`restrictions: string[]`). The bank holds **exactly one prompt per unit** (six total), each
+measuring something deliberately unusual to force real thinking rather than a familiar textbook
+setup — determining the mass of an object with no scale (via a collision, and separately via an
+oscillating rubber band), telling a raw egg from a hard-boiled one without opening either, finding
+a falling coffee filter's terminal velocity, sorting out whether a coasting bicycle wheel loses
+more speed to air resistance or axle friction, and recovering a rubber band's stored elastic
+energy without cutting it open.
+
+There are no rounds or difficulty bands anymore — `experimentalDesignGenerator.ts`'s
+`buildWorksheet` just returns one experiment per selected unit, shuffled into a worksheet order,
+and `ExperimentalDesign.tsx` renders them all as cards with an `AnswerReveal` each. Selecting fewer
+units just makes a shorter worksheet; there's no minimum-pool "block Start" threshold the way
+Physics Court has, since one prompt per unit is already the whole bank for that unit.
 
 `possibleApproaches` (in `answers.ts`) must list at least two genuinely different methods, unless
 the question explicitly sets `singleValidApproach: true`.
 
-## Content volume in this build
+## Alien Physics Worksheet.docx
 
-This build ships a **minimal seed bank** rather than the full v1 target volumes: 24 Physics Court
-questions (vs. the 28-question target), 9 Alien Physics problems (vs. 16), and 7 Experimental
-Design prompts (vs. 10). Every claim in the bank is adjudicated in `CONTENT-RULES.md` — this
-build uses that pre-vetted content directly rather than authoring additional claims, on the
-principle (also from `CONTENT-RULES.md`) that a claim with a shaky verdict is worse than no claim
-at all.
-
-Every unit/skill selection has enough eligible questions to clear the "block Start" threshold
-(4 questions) on its own, but running a **full-length** lesson (no shortage notes) works best with
-most or all units selected — with only 24 Physics Court questions across 7 units, for example,
-selecting a single unit will produce a noticeably shorter verdict round. That's expected and
-handled, not a bug (see "Shortage handling" above).
+Alien Physics isn't part of the site anymore, but its question bank was strong content — made-up
+laws from fictional worlds, solved with calculus/algebra/vector skills rather than real physics —
+so it lives on as a standalone Word document instead of an interactive page. It's a static
+worksheet: statements of each fictional law, the problem, and (for error-analysis items) a
+fictional student's flawed numbered steps to critique, followed by a separately labeled
+**Differential Equations** section, then an answer key at the end. Print it, or open it in Word.
 
 ## Validation
 
@@ -212,13 +261,13 @@ npm run validate
 ```
 
 Runs `scripts/validate.ts` and exits nonzero on any failure. It checks: ID uniqueness and format
-(`XX-YYY-NNN`) across all three activities, that every question has a matching answer record and
-vice versa, `difficulty` is an integer 1–5, every `requiredUnits`/`requiredSkills` entry is a real
-union member, `sometimes` verdicts have a `counterexample`, `always` verdicts have a
-`proofSketch` and never a `validRewrite`, every Physics Court question has non-empty
-`assumptions`, `firstBadStepIndex` is in range, `possibleApproaches` has at least two entries
-unless `singleValidApproach` is set, every referenced graph has real data, and every round has at
-least one eligible question when everything is selected.
+(`XX-YYY-NNN`) across both activities, that every question has a matching answer record and vice
+versa, `difficulty` is an integer 1–5, every `requiredUnits` entry is a real union member,
+`sometimes` verdicts have a `counterexample`, `always` verdicts have a `proofSketch` and never a
+`validRewrite`, every Physics Court question has non-empty `assumptions`, `possibleApproaches` has
+at least two entries unless `singleValidApproach` is set, every referenced graph has real data,
+Physics Court has a non-empty eligible pool when all units are selected, and Experimental Design
+has exactly one prompt per unit.
 
 This is the same check that runs in CI before every deploy (see `.github/workflows/deploy.yml`) —
 a content mistake fails the deploy, not just a local warning.

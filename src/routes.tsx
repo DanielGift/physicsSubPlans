@@ -2,15 +2,14 @@ import { Route, Routes, useParams } from 'react-router-dom';
 import { activityRegistry, getActivity } from './activities/registry';
 import App from './App';
 import { ActivityCard } from './components/ActivityCard';
-import { BankBrowser } from './teacher/BankBrowser';
 
 function Home() {
   return (
     <div className="page stack">
       <h1>Substitute Physics</h1>
       <p className="text-muted">
-        Pick an activity, check off what the class has covered, and run an 80-minute AP Physics C: Mechanics
-        lesson. No physics background required.
+        Pick an activity, check off what the class has covered, and run a lesson on the projector. No
+        physics background required.
       </p>
       <div className="stack">
         {activityRegistry.map((activity) => (
@@ -49,7 +48,6 @@ export function AppRoutes() {
       <Route element={<App />}>
         <Route index element={<Home />} />
         <Route path="activity/:activityId" element={<ActivityPage />} />
-        <Route path="teacher/bank" element={<BankBrowser />} />
       </Route>
     </Routes>
   );

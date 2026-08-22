@@ -1,6 +1,5 @@
 import type { ComponentType } from 'react';
 import type { ActivityId } from '../types';
-import { AlienPhysics } from './alienPhysics';
 import { ExperimentalDesign } from './experimentalDesign';
 import { PhysicsCourt } from './physicsCourt';
 
@@ -20,13 +19,6 @@ export const activityRegistry: ActivityDefinition[] = [
     shortDescription: 'Students argue whether a physics claim is always, sometimes, or never true.',
     estimatedMinutes: 80,
     Component: PhysicsCourt,
-  },
-  {
-    id: 'alien-physics',
-    title: 'Alien Physics',
-    shortDescription: 'Students apply made-up laws from an alien world using reasoning skills they already have.',
-    estimatedMinutes: 80,
-    Component: AlienPhysics,
   },
   {
     id: 'experimental-design',

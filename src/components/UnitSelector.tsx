@@ -11,7 +11,6 @@ const UNIT_LABELS: Record<PhysicsUnit, string> = {
   energy: 'Energy',
   momentum: 'Momentum',
   rotation: 'Rotation',
-  gravitation: 'Gravitation',
   oscillations: 'Oscillations',
 };
 

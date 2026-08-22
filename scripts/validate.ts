@@ -1,16 +1,12 @@
 // Content validation — see BUILD-SPEC.md §8. Exits nonzero on any failure.
 
-import { PHYSICS_UNITS, REASONING_SKILLS } from '../src/types';
+import { PHYSICS_UNITS } from '../src/types';
 import { physicsCourtQuestions } from '../src/activities/physicsCourt/questions';
 import { physicsCourtAnswers } from '../src/activities/physicsCourt/answers';
-import { alienPhysicsQuestions } from '../src/activities/alienPhysics/questions';
-import { alienPhysicsAnswers } from '../src/activities/alienPhysics/answers';
 import { experimentalDesignQuestions } from '../src/activities/experimentalDesign/questions';
 import { experimentalDesignAnswers } from '../src/activities/experimentalDesign/answers';
-import { PHYSICS_COURT_ROUND_CONFIG, getEligiblePool as getPhysicsCourtPool } from '../src/activities/physicsCourt/physicsCourtGenerator';
-import { isEligibleForRound as isEligibleForPhysicsCourtRound } from '../src/activities/physicsCourt/physicsCourtTypes';
-import { ALIEN_ROUND_CONFIG, getEligiblePool as getAlienPool } from '../src/activities/alienPhysics/alienPhysicsGenerator';
-import { EXPERIMENTAL_DESIGN_ROUND_CONFIG, getEligiblePool as getExperimentalDesignPool } from '../src/activities/experimentalDesign/experimentalDesignGenerator';
+import { getEligiblePool as getPhysicsCourtPool } from '../src/activities/physicsCourt/physicsCourtGenerator';
+import { getEligiblePool as getExperimentalDesignPool } from '../src/activities/experimentalDesign/experimentalDesignGenerator';
 
 const errors: string[] = [];
 
@@ -77,43 +73,6 @@ for (const id of Object.keys(physicsCourtAnswers)) {
   if (!pcIds.includes(id)) fail(`physicsCourtAnswers has "${id}" with no matching question.`);
 }
 
-// --- Alien Physics ---
-
-const apIds = alienPhysicsQuestions.map((q) => q.id);
-apIds.forEach(checkIdFormat);
-
-for (const q of alienPhysicsQuestions) {
-  checkDifficulty(q.id, q.difficulty);
-  for (const skill of q.requiredSkills) {
-    if (!REASONING_SKILLS.includes(skill)) fail(`${q.id}: "${skill}" is not a valid ReasoningSkill.`);
-  }
-  if (!q.requiredSkills.length) fail(`${q.id}: requiredSkills must be non-empty.`);
-
-  const answer = alienPhysicsAnswers[q.id];
-  if (!answer) {
-    fail(`${q.id}: no matching answer record.`);
-    continue;
-  }
-  if (q.questionType === 'error_analysis') {
-    if (!q.flawedSolution || q.flawedSolution.length === 0) {
-      fail(`${q.id}: error_analysis question must have a non-empty flawedSolution.`);
-    }
-    if (answer.firstBadStepIndex === undefined) {
-      fail(`${q.id}: error_analysis question is missing firstBadStepIndex in its answer.`);
-    } else if (
-      !q.flawedSolution ||
-      answer.firstBadStepIndex < 0 ||
-      answer.firstBadStepIndex >= q.flawedSolution.length
-    ) {
-      fail(`${q.id}: firstBadStepIndex ${answer.firstBadStepIndex} is out of bounds for flawedSolution.`);
-    }
-  }
-}
-
-for (const id of Object.keys(alienPhysicsAnswers)) {
-  if (!apIds.includes(id)) fail(`alienPhysicsAnswers has "${id}" with no matching question.`);
-}
-
 // --- Experimental Design ---
 
 const edIds = experimentalDesignQuestions.map((q) => q.id);
@@ -145,12 +104,12 @@ for (const id of Object.keys(experimentalDesignAnswers)) {
 
 // --- IDs unique across the whole app ---
 
-checkDuplicateIds([...pcIds, ...apIds, ...edIds]);
+checkDuplicateIds([...pcIds, ...edIds]);
 
 // --- Graph assets resolve (every graph referenced has at least one series with points) ---
 
-for (const q of [...physicsCourtQuestions, ...alienPhysicsQuestions]) {
-  if ('graph' in q && q.graph) {
+for (const q of physicsCourtQuestions) {
+  if (q.graph) {
     if (!q.graph.series.length) fail(`${q.id}: graph has no series.`);
     for (const series of q.graph.series) {
       if (!series.points.length) fail(`${q.id}: graph series "${series.label}" has no points.`);
@@ -158,33 +117,15 @@ for (const q of [...physicsCourtQuestions, ...alienPhysicsQuestions]) {
   }
 }
 
-// --- Per-round eligibility pools are non-empty when all units/skills are selected ---
+// --- Eligibility pools are non-empty ---
 
-const pcPoolAll = getPhysicsCourtPool(PHYSICS_UNITS);
-for (const config of PHYSICS_COURT_ROUND_CONFIG) {
-  const eligible = pcPoolAll.filter((q) => isEligibleForPhysicsCourtRound(config.roundId, physicsCourtAnswers[q.id]));
-  if (eligible.length === 0) {
-    fail(`Physics Court round "${config.roundId}" has no eligible questions when all units are selected.`);
-  }
+if (getPhysicsCourtPool(PHYSICS_UNITS).length === 0) {
+  fail('Physics Court has no eligible questions when all units are selected.');
 }
 
-const apPoolAll = getAlienPool(REASONING_SKILLS);
-for (const config of ALIEN_ROUND_CONFIG) {
-  const eligible = apPoolAll.filter((q) => config.eligibleTypes.includes(q.questionType));
-  if (eligible.length === 0) {
-    fail(`Alien Physics round "${config.roundId}" has no eligible questions when all skills are selected.`);
-  }
-}
-
-const edPoolAll = getExperimentalDesignPool(PHYSICS_UNITS);
-for (const config of EXPERIMENTAL_DESIGN_ROUND_CONFIG) {
-  const eligible = edPoolAll.filter((q) => {
-    if (config.maxDifficulty !== undefined && q.difficulty > config.maxDifficulty) return false;
-    if (config.minDifficulty !== undefined && q.difficulty < config.minDifficulty) return false;
-    return true;
-  });
-  if (eligible.length === 0) {
-    fail(`Experimental Design round "${config.roundId}" has no eligible prompts when all units are selected.`);
+for (const unit of PHYSICS_UNITS) {
+  if (getExperimentalDesignPool([unit]).length !== 1) {
+    fail(`Experimental Design: expected exactly one prompt for unit "${unit}".`);
   }
 }
 
@@ -196,6 +137,4 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log(
-  `Validation passed: ${pcIds.length} Physics Court, ${apIds.length} Alien Physics, ${edIds.length} Experimental Design questions.`,
-);
+console.log(`Validation passed: ${pcIds.length} Physics Court, ${edIds.length} Experimental Design questions.`);

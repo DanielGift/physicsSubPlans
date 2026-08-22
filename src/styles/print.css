@@ -3,14 +3,6 @@
     display: none !important;
   }
 
-  [data-print='teacher-only'] {
-    display: none !important;
-  }
-
-  body.teacher-mode [data-print='teacher-only'] {
-    display: block !important;
-  }
-
   .card {
     box-shadow: none;
     border: 1px solid #999;

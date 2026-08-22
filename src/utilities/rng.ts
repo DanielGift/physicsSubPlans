@@ -39,7 +39,7 @@ export function shuffle<T>(items: T[], rng: () => number): T[] {
 const SEED_CONSONANTS = 'bcdfghjkmnpqrstvwxyz';
 const SEED_DIGITS = '0123456789';
 
-/** A short readable seed like "k7m2-q4x9", typeable into Teacher Mode by hand. */
+/** A short readable seed like "k7m2-q4x9", typeable by hand into another section's Advanced Options. */
 export function generateReadableSeed(rng: () => number = Math.random): string {
   const part = () => {
     let s = '';

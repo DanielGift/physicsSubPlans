@@ -34,7 +34,7 @@ button {
 }
 
 .page {
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: var(--space-6) var(--space-4);
 }
@@ -62,7 +62,7 @@ button {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
-  padding: var(--space-5);
+  padding: var(--space-8);
 }
 
 .button {
@@ -114,11 +114,13 @@ h3 {
   color: var(--color-text-muted);
 }
 
-.teacher-panel {
-  background: var(--color-teacher-bg);
-  border: 1px solid var(--color-teacher-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-5);
+.statement-text {
+  color: var(--color-statement);
+}
+
+.claim-text {
+  color: var(--color-claim);
+  font-weight: 600;
 }
 
 .progress-bar-track {
@@ -132,12 +134,4 @@ h3 {
   height: 100%;
   background: var(--color-primary);
   transition: width 150ms ease;
-}
-
-body.projector-mode .page {
-  max-width: 1200px;
-}
-
-body.projector-mode .card {
-  padding: var(--space-8);
 }

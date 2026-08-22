@@ -21,7 +21,7 @@ export function PhysicsCourtSetup({ onStart }: PhysicsCourtSetupProps) {
     <div className="page stack">
       <h1>Physics Court</h1>
       <p className="text-muted">
-        Students argue whether a claim is always, sometimes, or never true. Check off what the class has
+        The class debates whether a claim is Always, Maybe, or Never true. Check off what the class has
         covered, then start — no physics knowledge required to run it.
       </p>
       <div className="card stack">

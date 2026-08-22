@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createRng } from '../../utilities/rng';
+import { PHYSICS_UNITS } from '../../types';
 import { physicsCourtAnswers } from './answers';
-import { generatePhysicsCourtRounds, getEligiblePool } from './physicsCourtGenerator';
-import { isEligibleForRound } from './physicsCourtTypes';
+import { countEligible, getEligiblePool, shuffleLap } from './physicsCourtGenerator';
 import { physicsCourtQuestions } from './questions';
 
 describe('PC-ENE-002 AND-semantics (BUILD-SPEC.md §54)', () => {
@@ -13,64 +12,53 @@ describe('PC-ENE-002 AND-semantics (BUILD-SPEC.md §54)', () => {
   });
 });
 
-describe('generatePhysicsCourtRounds', () => {
-  const allUnits = ['kinematics', 'forces', 'energy', 'momentum', 'rotation', 'gravitation', 'oscillations'] as const;
+describe('unit distribution', () => {
+  const TARGET_COUNTS: Record<string, number> = {
+    kinematics: 10,
+    forces: 10,
+    energy: 8,
+    momentum: 8,
+    rotation: 6,
+    oscillations: 6,
+  };
 
-  it('never repeats a question ID across rounds', async () => {
-    const { rounds } = await generatePhysicsCourtRounds([...allUnits], createRng('no-dupes'));
-    const allIds = rounds.flatMap((r) => r.questionIds);
-    expect(new Set(allIds).size).toBe(allIds.length);
+  it('matches the requested per-unit counts, including cross-tagged questions', () => {
+    for (const unit of PHYSICS_UNITS) {
+      const count = physicsCourtQuestions.filter((q) => q.requiredUnits.includes(unit)).length;
+      expect(count, `unit "${unit}"`).toBe(TARGET_COUNTS[unit]);
+    }
   });
 
-  it('is byte-identical for the same seed and settings', async () => {
-    const a = await generatePhysicsCourtRounds([...allUnits], createRng('sync-seed'));
-    const b = await generatePhysicsCourtRounds([...allUnits], createRng('sync-seed'));
+  it('no longer has gravitation as a unit', () => {
+    expect(PHYSICS_UNITS).not.toContain('gravitation');
+  });
+});
+
+describe('shuffleLap', () => {
+  it('includes every eligible question exactly once per lap, never duplicated', () => {
+    const eligible = getEligiblePool([...PHYSICS_UNITS]);
+    const lap = shuffleLap([...PHYSICS_UNITS], 'lap-seed', 0);
+    expect(new Set(lap).size).toBe(lap.length);
+    expect(lap.length).toBe(eligible.length);
+    expect(new Set(lap)).toEqual(new Set(eligible.map((q) => q.id)));
+  });
+
+  it('is deterministic for the same seed and lap index', () => {
+    const a = shuffleLap([...PHYSICS_UNITS], 'same-seed', 2);
+    const b = shuffleLap([...PHYSICS_UNITS], 'same-seed', 2);
     expect(a).toEqual(b);
   });
 
-  it('only places sometimes-verdict questions in the prosecution round', async () => {
-    const { rounds } = await generatePhysicsCourtRounds([...allUnits], createRng('prosecution-check'));
-    const prosecution = rounds.find((r) => r.roundId === 'prosecution');
-    expect(prosecution).toBeDefined();
-    for (const id of prosecution?.questionIds ?? []) {
-      expect(physicsCourtAnswers[id].verdict).toBe('sometimes');
-    }
+  it('produces a different order for a different lap index (same seed)', () => {
+    const lap0 = shuffleLap([...PHYSICS_UNITS], 'vary-seed', 0);
+    const lap1 = shuffleLap([...PHYSICS_UNITS], 'vary-seed', 1);
+    expect(lap0).not.toEqual(lap1);
   });
 
-  it('only places always-verdict questions in the defense round', async () => {
-    const { rounds } = await generatePhysicsCourtRounds([...allUnits], createRng('defense-check'));
-    const defense = rounds.find((r) => r.roundId === 'defense');
-    expect(defense).toBeDefined();
-    for (const id of defense?.questionIds ?? []) {
-      expect(physicsCourtAnswers[id].verdict).toBe('always');
-    }
-  });
-
-  it('only places sometimes/never questions with a validRewrite in the rewrite round', async () => {
-    const { rounds } = await generatePhysicsCourtRounds([...allUnits], createRng('rewrite-check'));
-    const rewrite = rounds.find((r) => r.roundId === 'rewrite');
-    expect(rewrite).toBeDefined();
-    for (const id of rewrite?.questionIds ?? []) {
-      const answer = physicsCourtAnswers[id];
-      expect(['sometimes', 'never']).toContain(answer.verdict);
-      expect(answer.validRewrite).toBeTruthy();
-    }
-  });
-
-  it('shrinks a round and reports a shortage note instead of throwing when the pool is tiny', async () => {
-    const { rounds, shortageNotes } = await generatePhysicsCourtRounds(['kinematics'], createRng('shortage'));
-    expect(shortageNotes.length).toBeGreaterThan(0);
-    const allIds = rounds.flatMap((r) => r.questionIds);
-    expect(new Set(allIds).size).toBe(allIds.length);
-  });
-
-  it('every round eligibility check agrees with isEligibleForRound', async () => {
-    const { rounds } = await generatePhysicsCourtRounds([...allUnits], createRng('eligibility-check'));
-    for (const round of rounds) {
-      for (const id of round.questionIds) {
-        expect(isEligibleForRound(round.roundId, physicsCourtAnswers[id])).toBe(true);
-      }
-    }
+  it('never throws and never duplicates for a tiny eligible pool', () => {
+    const lap = shuffleLap(['kinematics'], 'tiny-seed', 0);
+    expect(new Set(lap).size).toBe(lap.length);
+    expect(lap.length).toBe(countEligible(['kinematics']));
   });
 });
 
