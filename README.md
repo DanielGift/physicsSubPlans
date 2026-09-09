@@ -187,12 +187,12 @@ statement (that's the class-facing framing; internally the `Verdict` type is sti
 }
 ```
 
-### Units: 47 questions, gravitation folded in
+### Units: 58 questions, gravitation folded in
 
 `PhysicsUnit` has six values — gravitation isn't one of them in the current AP Physics C:
-Mechanics framework. The bank targets a specific distribution: **10 kinematics, 10 forces, 8
-energy, 8 momentum, 6 rotation, 6 oscillations** (`PC-ENE-002` is cross-tagged energy+rotation and
-counts toward both, so 47 unique questions cover 48 "slots" — see the unit-distribution test in
+Mechanics framework. The bank targets a specific distribution: **12 kinematics, 12 forces, 10
+energy, 10 momentum, 7 rotation, 7 oscillations** (`PC-ENE-002` is cross-tagged energy+rotation and
+counts toward both, so 58 unique questions cover 59 "slots" — see the unit-distribution test in
 `physicsCourtGenerator.test.ts`, which locks these exact counts in). The four former-gravitation
 claims were folded into the unit their physics actually belongs to, not discarded:
 

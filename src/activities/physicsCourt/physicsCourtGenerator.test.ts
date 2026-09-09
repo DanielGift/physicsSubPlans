@@ -14,12 +14,12 @@ describe('PC-ENE-002 AND-semantics (BUILD-SPEC.md §54)', () => {
 
 describe('unit distribution', () => {
   const TARGET_COUNTS: Record<string, number> = {
-    kinematics: 10,
-    forces: 10,
-    energy: 8,
-    momentum: 8,
-    rotation: 6,
-    oscillations: 6,
+    kinematics: 12,
+    forces: 12,
+    energy: 10,
+    momentum: 10,
+    rotation: 8, // 7 single-unit rotation questions plus the cross-tagged PC-ENE-002
+    oscillations: 7,
   };
 
   it('matches the requested per-unit counts, including cross-tagged questions', () => {

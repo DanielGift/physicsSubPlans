@@ -3,8 +3,8 @@ import type { PhysicsCourtQuestion } from './physicsCourtTypes';
 // Student-safe fields only. Verdicts, explanations, and every other adjudicated
 // field live in the answer key module and must never be imported here (see BUILD-SPEC.md §3).
 //
-// Unit distribution: 10 kinematics, 10 forces, 8 energy, 8 momentum, 6 rotation, 6
-// oscillations (48 slots; 47 unique questions, since PC-ENE-002 is cross-tagged
+// Unit distribution: 12 kinematics, 12 forces, 10 energy, 10 momentum, 7 rotation, 7
+// oscillations (59 slots; 58 unique questions, since PC-ENE-002 is cross-tagged
 // energy+rotation and counts toward both). Gravitation is not its own unit in the
 // current AP Physics C: Mechanics framework — former gravitation claims were folded
 // into Forces (orbital dynamics as a circular-motion/force application) and Energy
@@ -94,8 +94,26 @@ export const physicsCourtQuestions: PhysicsCourtQuestion[] = [
     topicTags: ['1D motion'],
     difficulty: 3,
   },
+  {
+    id: 'PC-KIN-011',
+    setup: "A particle's position is a differentiable function of time, and is symmetric about some instant t0 — that is, its position at t0+τ equals its position at t0−τ, for every τ.",
+    claim: "The particle's velocity at t0 is exactly zero.",
+    requiredUnits: ['kinematics'],
+    topicTags: ['symmetry', 'derivatives'],
+    difficulty: 5,
+    requiresCalculus: true,
+  },
+  {
+    id: 'PC-KIN-012',
+    setup: 'A particle moves along a line over a time interval [t1, t2].',
+    claim: 'The particle\'s average velocity over the interval equals its instantaneous velocity at the exact midpoint time, (t1+t2)/2.',
+    requiredUnits: ['kinematics'],
+    topicTags: ['derivatives', 'mean value theorem'],
+    difficulty: 4,
+    requiresCalculus: true,
+  },
 
-  // ===== Forces (10) =====
+  // ===== Forces (12) =====
   {
     id: 'PC-FOR-001',
     setup: 'An object moves to the right while its speed is decreasing.',
@@ -176,8 +194,24 @@ export const physicsCourtQuestions: PhysicsCourtQuestion[] = [
     topicTags: ['friction', "Newton's second law"],
     difficulty: 4,
   },
+  {
+    id: 'PC-FOR-011',
+    setup: 'An object moves along a circular path of fixed radius r under the combined action of a radial force and a tangential force, so its speed is changing over time. At one particular instant, its speed is momentarily not changing (its tangential acceleration is zero at that instant).',
+    claim: 'At that instant, the net force on the object points exactly toward the center of the circle.',
+    requiredUnits: ['forces'],
+    topicTags: ['circular motion', 'vectors'],
+    difficulty: 4,
+  },
+  {
+    id: 'PC-FOR-012',
+    setup: 'Several blocks, each with nonzero mass, are connected in a line by ideal (massless, inextensible) strings, and a single horizontal force is applied to the front block. All blocks accelerate together at the same rate.',
+    claim: 'The tension is the same in every connecting string.',
+    requiredUnits: ['forces'],
+    topicTags: ["Newton's second law", 'systems of objects'],
+    difficulty: 4,
+  },
 
-  // ===== Energy (8; PC-ENE-002 is cross-tagged with rotation) =====
+  // ===== Energy (10; PC-ENE-002 is cross-tagged with rotation) =====
   {
     id: 'PC-ENE-001',
     setup: 'The net work done on an object over some displacement is zero.',
@@ -243,8 +277,24 @@ export const physicsCourtQuestions: PhysicsCourtQuestion[] = [
     topicTags: ['conservative forces', 'work'],
     difficulty: 5,
   },
+  {
+    id: 'PC-ENE-009',
+    setup: 'An object is released from rest at the top of a frictionless track and slides down to a lower point. A second, identical object is released from rest at the same height on a differently shaped frictionless track, ending at the same lower height. Both objects remain in contact with their tracks the whole way down.',
+    claim: 'The two objects reach that lower height with the same speed.',
+    requiredUnits: ['energy'],
+    topicTags: ['conservation', 'conservative forces'],
+    difficulty: 3,
+  },
+  {
+    id: 'PC-ENE-010',
+    setup: 'Using the same two tracks as the previous claim — both frictionless, same start height, same lower end height, different shapes.',
+    claim: 'The two objects also arrive at the bottom at the same time.',
+    requiredUnits: ['energy'],
+    topicTags: ['conservation', 'modeling'],
+    difficulty: 5,
+  },
 
-  // ===== Momentum (8) =====
+  // ===== Momentum (10) =====
   {
     id: 'PC-MOM-001',
     setup: 'The total momentum of a two-object system is constant over some time interval.',
@@ -310,8 +360,24 @@ export const physicsCourtQuestions: PhysicsCourtQuestion[] = [
     topicTags: ['center of mass', "Newton's third law"],
     difficulty: 4,
   },
+  {
+    id: 'PC-MOM-009',
+    setup: 'A shell undergoing projectile motion (only gravity acting) explodes into several fragments while still in mid-flight, due to internal forces only.',
+    claim: "After the explosion, the system's center of mass continues along the exact same parabolic path that the unexploded shell would have followed.",
+    requiredUnits: ['momentum'],
+    topicTags: ['center of mass', 'projectile motion'],
+    difficulty: 4,
+  },
+  {
+    id: 'PC-MOM-010',
+    setup: 'In a one-dimensional elastic collision, an object with mass much greater than a second, initially stationary object (m1 much greater than m2) collides head-on with that stationary object.',
+    claim: "The light object's final speed approaches twice the heavy object's initial speed, not merely the same speed as the heavy object.",
+    requiredUnits: ['momentum'],
+    topicTags: ['collisions', 'limits'],
+    difficulty: 5,
+  },
 
-  // ===== Rotation (6; plus PC-ENE-002 above is cross-tagged here too) =====
+  // ===== Rotation (7; plus PC-ENE-002 above is cross-tagged here too) =====
   {
     id: 'PC-ROT-001',
     setup: 'A rigid body is free to rotate about any axis (not constrained to a fixed axis) and experiences zero net torque about its center of mass.',
@@ -352,8 +418,24 @@ export const physicsCourtQuestions: PhysicsCourtQuestion[] = [
     topicTags: ['rolling motion', 'rotational energy'],
     difficulty: 4,
   },
+  {
+    id: 'PC-ROT-006',
+    setup: 'A rotating system experiences zero net external torque about some axis, so its angular momentum about that axis is conserved.',
+    claim: "The system's rotational kinetic energy is therefore also conserved.",
+    requiredUnits: ['rotation'],
+    topicTags: ['angular momentum', 'rotational energy'],
+    difficulty: 4,
+  },
+  {
+    id: 'PC-ROT-007',
+    setup: "A rigid body's center of mass is itself accelerating — for example, a ball rolling down an incline, or any rigid body acted on by a nonzero net external force.",
+    claim: 'The equation "net torque about the center of mass equals the rate of change of angular momentum about the center of mass" still holds exactly, even though the center of mass is not moving at constant velocity.',
+    requiredUnits: ['rotation'],
+    topicTags: ['torque', 'center of mass'],
+    difficulty: 5,
+  },
 
-  // ===== Oscillations (6) =====
+  // ===== Oscillations (7) =====
   {
     id: 'PC-OSC-001',
     setup: 'An object undergoes ideal simple harmonic motion and passes through the equilibrium position.',
@@ -401,5 +483,14 @@ export const physicsCourtQuestions: PhysicsCourtQuestion[] = [
     requiredUnits: ['oscillations'],
     topicTags: ['SHM', 'energy'],
     difficulty: 3,
+  },
+  {
+    id: 'PC-OSC-007',
+    setup: 'An object undergoes ideal simple harmonic motion with angular frequency omega.',
+    claim: 'Its kinetic energy and potential energy each oscillate sinusoidally in time at angular frequency 2*omega — twice the frequency of the position itself.',
+    requiredUnits: ['oscillations'],
+    topicTags: ['SHM', 'energy'],
+    difficulty: 4,
+    requiresCalculus: true,
   },
 ];

@@ -115,6 +115,32 @@ export const physicsCourtAnswers: Record<string, PhysicsCourtAnswer> = {
       'Students picture scenarios like a ball thrown up and caught, where velocity is zero once at the top, and imagine a longer flight might make it zero twice — but this "up and down" story actually only has constant acceleration during free flight, and even then, v(t) = v0 - gt is still linear and crosses zero exactly once.',
     validRewrite: 'A particle moving along a straight line with nonzero, constant acceleration has its velocity equal to zero at exactly one instant (over all time).',
   },
+  'PC-KIN-011': {
+    verdict: 'always',
+    assumptions: [
+      'Position is differentiable at t0.',
+      'The symmetry (position at t0+τ equals position at t0−τ) holds for τ in some interval around 0, not just at isolated points.',
+    ],
+    explanation:
+      'Writing g(u) = x(t0+u), the symmetry says g is an even function of u. The derivative of an even function is odd, and any odd function must equal its own negative at u=0 — forcing g\'(0) = 0, i.e., v(t0) = 0.',
+    proofSketch:
+      "g(u)=g(−u) for all u. Differentiating both sides with respect to u (chain rule on the right): g'(u) = −g'(−u). At u=0: g'(0) = −g'(0), so 2g'(0)=0, g'(0)=0.",
+    misconception:
+      "Students only recognize this fact in the special case of a projectile at the top of its arc, without realizing it's a general consequence of time-symmetry that applies to any symmetric motion, not just parabolic trajectories.",
+    teacherNotes:
+      "This is the general principle behind 'velocity is zero at the top of a symmetric projectile arc' — same argument, no projectile needed.",
+  },
+  'PC-KIN-012': {
+    verdict: 'sometimes',
+    assumptions: ['Position is differentiable on the interval.', '"Average velocity" means total displacement divided by total time.'],
+    explanation:
+      'The Mean Value Theorem guarantees the average velocity equals the instantaneous velocity at some instant strictly between t1 and t2 — but it does not guarantee that instant is the midpoint. Only when acceleration is constant (velocity is a linear function of time) does that special instant coincide with the midpoint time.',
+    counterexample:
+      'Let x(t) = t^3 on the interval [0,2]. Average velocity = (x(2)-x(0))/(2-0) = 8/2 = 4. But the instantaneous velocity at the midpoint time t=1 is v(1) = 3(1)^2 = 3, not 4 — the matching instant guaranteed by the Mean Value Theorem exists somewhere in (0,2), but it is not at the midpoint here.',
+    validRewrite: "If the particle's acceleration is constant throughout the interval, its average velocity equals its instantaneous velocity at the exact midpoint time.",
+    misconception:
+      "Students treat the Mean Value Theorem's guarantee of some matching instant as if it specifically pins down the midpoint, rather than checking whether the motion has constant acceleration (linear velocity) — the one case where the two actually coincide.",
+  },
 
   // ===== Forces =====
   'PC-FOR-001': {
@@ -226,6 +252,25 @@ export const physicsCourtAnswers: Record<string, PhysicsCourtAnswer> = {
     misconception:
       'Students imagine the applied push somehow "passes through" to the top block directly, rather than recognizing forces only act through actual points of contact — the top block only ever feels the push indirectly, transmitted via friction from the block beneath it.',
   },
+  'PC-FOR-011': {
+    verdict: 'always',
+    assumptions: ['The object stays exactly on the circular path of fixed radius r.', 'Acceleration is decomposed into radial (centripetal) and tangential components.'],
+    explanation:
+      'For any motion along a fixed-radius circle, acceleration always splits into a radial component v^2/r (toward the center) and a tangential component dv/dt (along the direction of motion) — this is a purely kinematic fact, independent of what forces cause it. When dv/dt = 0 at an instant, only the radial component survives, so the net force (which equals mass times the total acceleration) points directly toward the center at that instant.',
+    proofSketch:
+      'a = (dv/dt) * (tangential unit vector) + (v^2/r) * (radial unit vector, inward). Setting dv/dt=0 leaves a = (v^2/r) inward, so F_net = ma points inward (toward the center).',
+    misconception:
+      "Students assume 'speed not changing' means the object is momentarily in uniform circular motion overall, missing that this reasoning applies at just that single instant even while the object is generally speeding up or slowing down elsewhere along the path.",
+  },
+  'PC-FOR-012': {
+    verdict: 'never',
+    assumptions: ['Strings are ideal (massless, inextensible).', 'At least two connecting strings exist (three or more blocks).', 'All block masses are nonzero.'],
+    explanation:
+      "Each string only has to supply the force needed to accelerate whatever mass is behind it in the line. The string closest to the back is accelerating the least total mass, so it carries the least tension; each string further toward the front carries more, since it must also account for the mass of every block still behind it. With all masses nonzero, these required tensions are always strictly different from one string to the next.",
+    misconception:
+      "Students treat tension as a single shared property of 'the string system' rather than recognizing each string individually only needs to supply the force for the mass trailing it — a direct analogue of the confusion in single-string problems where students forget tension can differ on either side of a pulley or knot.",
+    validRewrite: "The tension is greatest in the string closest to the applied force, and decreases toward the back of the train, with each string's tension equal to (the total trailing mass) times the common acceleration.",
+  },
 
   // ===== Energy =====
   'PC-ENE-001': {
@@ -312,6 +357,27 @@ export const physicsCourtAnswers: Record<string, PhysicsCourtAnswer> = {
       'Students treat "zero net work on a closed path" as informative about direction, when it is true of every conservative force on every closed path regardless of geometry — it says nothing by itself about perpendicularity.',
     validRewrite: 'An object moves in a horizontal circle under uniform gravity — gravity is perpendicular to the object\'s velocity at every point along that closed path.',
     teacherNotes: 'The premise is uninformative (true of all conservative forces); the interesting content is that the conclusion is sometimes achievable (horizontal circle) and sometimes not (vertical circle).',
+  },
+  'PC-ENE-009': {
+    verdict: 'always',
+    assumptions: ['Both tracks are frictionless.', 'Only gravity and the normal force act on each object.', 'Each object stays in contact with its track throughout (no separating from the surface).'],
+    explanation:
+      'The normal force always acts perpendicular to the direction of motion along the track, so it never does work, regardless of the track\'s shape. That leaves gravity as the only force doing work, and gravity\'s work depends only on the net change in height, not on the path taken. Since both objects drop the same height, they gain the same kinetic energy, and therefore have the same final speed.',
+    proofSketch: 'For each object, energy conservation gives (1/2)mv^2 = mgh, so v = sqrt(2gh), depending only on h — identical for both tracks since h is the same for both.',
+    misconception:
+      'Students assume a steeper or more dramatic-looking track must produce a higher final speed, conflating a track that gets you there faster (less time) with one that gets you there at a higher speed — those are two different things (see the companion claim about arrival time).',
+  },
+  'PC-ENE-010': {
+    verdict: 'sometimes',
+    assumptions: ['Both tracks are frictionless.', 'Both objects are released from rest at the same height and reach the same lower height.'],
+    explanation:
+      "Energy conservation pins down only the final speed, via the net height dropped — it says nothing about how that speed is built up over time, which depends on the detailed shape of the track. A track that descends steeply near the start reaches high speed sooner and covers its remaining (flatter) distance faster than a straight incline, arriving sooner despite ending at the identical final speed. The two tracks give the same speed but not, in general, the same time.",
+    counterexample:
+      'A straight incline and a track that drops steeply for the first portion and then levels off gradually both connect the same start and end heights. The steep-first track reaches high speed early and travels the flatter remainder faster than the straight incline does, so it arrives sooner — this is the classical brachistochrone insight (the fastest such track is actually a cycloid, faster than any straight incline).',
+    misconception:
+      "Students conflate 'same energy conservation equation applies' with 'same everything applies,' not realizing that energy conservation constrains only speed as a function of height, leaving the time-history of the motion completely open and shape-dependent.",
+    teacherNotes:
+      "Ship this alongside PC-ENE-009 (same speed, always) as a matched pair — it's one of the most striking illustrations in the whole unit that conservation laws don't determine everything about a motion.",
   },
 
   // ===== Momentum =====
@@ -401,6 +467,34 @@ export const physicsCourtAnswers: Record<string, PhysicsCourtAnswer> = {
       'Students conflate this with the weaker, only-sometimes-true claim about zero net impulse over an interval (PC-MOM-003) — here the premise is much stronger (no external force at any instant), which is exactly what removes that loophole.',
     teacherNotes: 'Ship this alongside PC-MOM-003 so students see exactly which assumption (instant-by-instant vs. interval) flips the verdict from sometimes to always.',
   },
+  'PC-MOM-009': {
+    verdict: 'always',
+    assumptions: [
+      'The explosion involves only internal forces (no external impulse from the explosion itself).',
+      'Gravity is the only external force acting before and after the explosion.',
+      'No fragment leaves the system during the analysis (e.g., none has hit the ground yet).',
+    ],
+    explanation:
+      "Internal forces from the explosion cancel in pairs when summed over the whole system (Newton's third law), so they cannot change the center of mass's acceleration. Before and after the explosion, the only external force acting on the system is gravity — exactly the same force that was acting on the intact shell. With the same net external force and the same position/velocity at the moment of explosion, the center of mass continues along the identical parabolic trajectory.",
+    proofSketch:
+      'a_cm = F_external,net / M_total. The explosion changes only internal forces, which sum to zero; F_external is gravity, unchanged. Since a_cm is unchanged and position/velocity are continuous through the explosion, the center of mass\'s trajectory is unaffected.',
+    misconception:
+      "Students think an explosion must somehow change the overall trajectory of 'the system,' not distinguishing between the individual fragments' new paths (which do change dramatically) and the center of mass's path (which does not change at all).",
+  },
+  'PC-MOM-010': {
+    verdict: 'always',
+    assumptions: [
+      'The collision is perfectly elastic.',
+      'Motion is one-dimensional (head-on).',
+      'The lighter object starts at rest.',
+      'm1 is taken to be much greater than m2 (the limiting case m1/m2 → infinity).',
+    ],
+    explanation:
+      "The standard 1D elastic collision formulas give final velocities v1' = ((m1-m2)/(m1+m2))v1 and v2' = (2m1/(m1+m2))v1. As m1/m2 grows large, the first fraction approaches 1 (the heavy object's speed barely changes) and the second approaches 2 (the light object's speed approaches twice the heavy object's initial speed) — not equal to it, as intuition often suggests.",
+    proofSketch: "Divide numerator and denominator of v2' = 2m1 v1/(m1+m2) by m1: v2' = 2v1/(1+m2/m1). As m1/m2→∞, m2/m1→0, so v2'→2v1.",
+    misconception:
+      "Students assume a heavy object hitting a light, stationary one just 'transfers its speed,' expecting the light object to move off at the same speed as the heavy one, rather than realizing the light object can be launched at nearly double that speed.",
+  },
 
   // ===== Rotation =====
   'PC-ROT-001': {
@@ -455,6 +549,30 @@ export const physicsCourtAnswers: Record<string, PhysicsCourtAnswer> = {
     misconception:
       'Students account only for translational kinetic energy, or assume "same mass, same speed" automatically means "same energy," forgetting the rotational term depends on the body\'s shape.',
     validRewrite: 'The body\'s total kinetic energy at the bottom depends on its total mass, v, AND its moment of inertia — which encodes how its mass is distributed.',
+  },
+  'PC-ROT-006': {
+    verdict: 'sometimes',
+    assumptions: ["The system's moment of inertia about the axis may or may not change over time (e.g., a skater pulling in her arms)."],
+    explanation:
+      'Angular momentum is L = Iω, and rotational kinetic energy is KE = L^2/(2I). If I changes while L stays fixed, KE changes too — specifically, KE increases as I decreases. Angular momentum conservation alone says nothing about I being constant, so it does not guarantee energy conservation.',
+    counterexample:
+      'A skater spinning with arms outstretched pulls her arms in. No external torque acts (ignoring negligible ice friction), so L is conserved. But I decreases as her arms come in, forcing omega to increase (since L=Iomega is fixed) — and KE = L^2/(2I) increases as I decreases. The extra kinetic energy comes from the muscular work she does pulling her arms in, not from nowhere.',
+    validRewrite: "If the system's moment of inertia about the axis is also constant, then conservation of angular momentum does guarantee conservation of rotational kinetic energy.",
+    misconception:
+      "Students treat 'conserved' as a property that spreads automatically from one quantity (angular momentum) to a related one (kinetic energy), without checking whether the two are tied together by a fixed moment of inertia.",
+  },
+  'PC-ROT-007': {
+    verdict: 'always',
+    assumptions: [
+      "Torque and angular momentum are computed about the body's own center of mass, not some other point.",
+      'The body is a system of particles (rigid or not) with a well-defined center of mass.',
+    ],
+    explanation:
+      'In general, the equation (net torque about P) = d(angular momentum about P)/dt only holds without extra correction terms when P is fixed in an inertial frame. The center of mass is a special exception to this requirement: even though it may be accelerating, the equation still holds about it exactly as written, with no extra correction terms needed. This is exactly why problems like a ball rolling down an incline are allowed to apply torque = I(alpha) about the center of mass, even though the center of mass is accelerating down the incline.',
+    proofSketch:
+      "Writing the total angular momentum about the center of mass and differentiating, the terms involving the center of mass's own acceleration cancel out of the sum over all particles (each particle's position relative to the center of mass, crossed with the center of mass's acceleration, sums to zero over the whole body by the definition of center of mass) — leaving exactly the net external torque about the center of mass.",
+    misconception:
+      "Students learn the rule 'torque equations need a fixed point' and then either avoid using the center of mass in accelerating situations, or mistakenly think they need to add correction terms — missing that the center of mass is specifically exempt from that requirement.",
   },
 
   // ===== Oscillations =====
@@ -518,5 +636,15 @@ export const physicsCourtAnswers: Record<string, PhysicsCourtAnswer> = {
     misconception:
       'Students treat energy and amplitude as if they were locked together by a single relationship, forgetting the spring constant is a second free parameter connecting them.',
     validRewrite: 'If the two oscillators also have the same spring constant, the same total mechanical energy implies the same amplitude.',
+  },
+  'PC-OSC-007': {
+    verdict: 'always',
+    assumptions: ['Motion is ideal SHM: x(t) = A cos(omega*t + phi).'],
+    explanation:
+      'Kinetic energy is proportional to v^2 ∝ sin^2(omega*t + phi), and potential energy is proportional to x^2 ∝ cos^2(omega*t + phi). The half-angle identities sin^2(θ) = (1-cos(2θ))/2 and cos^2(θ)=(1+cos(2θ))/2 show both energies are sinusoidal functions of 2*omega*t — twice the frequency of the position or velocity oscillation itself.',
+    proofSketch:
+      'x(t)=A cos(ωt+φ) gives PE ∝ x^2 = A^2 cos^2(ωt+φ) = (A^2/2)(1+cos(2ωt+2φ)). Similarly v(t)=-Aω sin(ωt+φ) gives KE ∝ v^2 = (A^2ω^2/2)(1-cos(2ωt+2φ)). Both contain cos(2ωt+2φ), an oscillation at angular frequency 2ω.',
+    misconception:
+      'Students assume every oscillating quantity in a system must share the same frequency as the position, not realizing that any quantity depending on x^2 or v^2 doubles the frequency via the half-angle identities — energy completes two full cycles for every one position cycle.',
   },
 };
