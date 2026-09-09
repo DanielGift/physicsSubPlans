@@ -123,9 +123,18 @@ if (getPhysicsCourtPool(PHYSICS_UNITS).length === 0) {
   fail('Physics Court has no eligible questions when all units are selected.');
 }
 
+const ED_TARGET_COUNTS: Record<string, number> = {
+  kinematics: 3,
+  forces: 3,
+  energy: 2,
+  momentum: 2,
+  rotation: 2,
+  oscillations: 2,
+};
 for (const unit of PHYSICS_UNITS) {
-  if (getExperimentalDesignPool([unit]).length !== 1) {
-    fail(`Experimental Design: expected exactly one prompt for unit "${unit}".`);
+  const count = getExperimentalDesignPool([unit]).length;
+  if (count !== ED_TARGET_COUNTS[unit]) {
+    fail(`Experimental Design: expected ${ED_TARGET_COUNTS[unit]} prompt(s) for unit "${unit}", found ${count}.`);
   }
 }
 

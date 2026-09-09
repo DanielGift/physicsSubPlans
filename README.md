@@ -21,9 +21,10 @@ This README is written so it's usable without reading any React.
   has two values (`physics-court`, `experimental-design`), and the twelve-value `ReasoningSkill`
   union is gone along with it, since nothing else used it.
 - **Teacher Mode is gone.** There is no hidden toggle, no separate `TeacherAnswerPanel`, and no
-  Bank Browser. Every answer key reveal is now just an on-demand step in the normal flow, visible
-  to the whole room (`AnswerReveal.tsx` for Experimental Design, `PhysicsCourtConclusion.tsx` for
-  Physics Court's built-in conclusion step).
+  Bank Browser. Answer reveals became on-demand steps in the normal flow instead of a hidden
+  view — at first via a generic `AnswerReveal.tsx` used by both remaining activities, then (see
+  below) removed from Experimental Design entirely, leaving `PhysicsCourtConclusion.tsx` as the
+  only reveal step left in the app.
 - **Projector sizing is the only mode.** There's no toggle for it — the base type scale in
   `tokens.css` *is* the projector scale, everywhere, always.
 - **The "Before you start" onboarding screen is gone** for Experimental Design. Setup goes
@@ -32,8 +33,16 @@ This README is written so it's usable without reading any React.
   framework. `PhysicsUnit` has six values now (kinematics, forces, energy, momentum, rotation,
   oscillations) — see the Physics Court section for where its content went.
 - **Both remaining activities dropped their round structure**: Physics Court runs one continuous,
-  non-stop cycle instead of four rounds; Experimental Design runs a worksheet with exactly one
-  prompt per unit instead of four difficulty-banded rounds.
+  non-stop cycle instead of four rounds; Experimental Design shows a fixed set of scenarios
+  instead of four difficulty-banded rounds.
+- **The Timer component is gone, site-wide.** Neither activity shows a clock anymore.
+- **`AnswerReveal.tsx` is gone.** Experimental Design no longer has any in-app answer reveal —
+  groups design on paper, and the substitute isn't shown a "correct" answer at all.
+- **Experimental Design dropped seeds and session persistence, but kept unit selection.** The one
+  setup screen combines instructions for the substitute with the same unit checkboxes as before —
+  checking a unit includes its one scenario, in a fixed unit order, no randomization. Nothing
+  about a run is remembered across a page reload; unchecking everything and reloading just goes
+  back to the instructions screen.
 
 ## Commands
 
@@ -74,8 +83,8 @@ This is configured for a GitHub Pages **project page** — a site served from
 src/
   activities/            one folder per activity (physicsCourt, experimentalDesign)
     registry.ts          the list the home page renders from
-  components/            shared, activity-agnostic UI (AnswerReveal, Timer, MathContent, ...)
-  session/               LessonSession type + localStorage persistence, reused loosely by both
+  components/            shared, activity-agnostic UI (MathContent, TagBadge, ...)
+  session/               LessonSession type + localStorage persistence — Physics Court only now
   utilities/             pure logic: seeded RNG, the balanced sampler
 scripts/validate.ts      content consistency checks — npm run validate
 ```
@@ -85,29 +94,28 @@ Each activity owns its own schema and generation logic under `src/activities/<na
 | File | Contents |
 |---|---|
 | `<name>Types.ts` | The question/answer TypeScript interfaces for this activity. |
-| `questions.ts` | **Student-safe fields only.** Everything shown before the reveal. |
+| `questions.ts` | **Student-safe fields only.** Everything shown on screen. |
 | `answers.ts` | Verdicts, explanations, and every other adjudicated field. |
-| `<name>Generator.ts` | Pure, React-free functions that turn a seed + selections into a worksheet/cycle. |
-| `<Name>Setup.tsx` | The screen where a substitute checks off units and hits Start. |
+| `<name>Generator.ts` | Pure, React-free functions/data that decide what shows up. |
+| `<Name>Setup.tsx` | The one screen shown before the activity itself. |
 | `<Name>.tsx` | The activity's top-level component. |
 
 The two activities don't share a "lesson shell" or round-navigator component — Physics Court is a
-live cycle, Experimental Design is a worksheet, and they ended up different enough that a shared
-abstraction wasn't worth it. What they *do* still share: `session/useSession.ts` and
-`session/sessionTypes.ts` for localStorage persistence and resume, and `utilities/rng.ts` /
-`utilities/balancedSample.ts` for seeded, reproducible generation.
+live cycle with session persistence and a growing question list, Experimental Design is a fixed,
+unconfigurable list of 5 scenarios with nothing to remember, and they ended up different enough
+that a shared abstraction wasn't worth it. `session/useSession.ts` and `session/sessionTypes.ts`
+(localStorage persistence and resume) are Physics-Court-only at this point.
 
 ### Why questions and answers are separate files
 
-`questions.ts` is imported everywhere. `answers.ts` is imported **only** by the reveal step —
-`AnswerReveal.tsx` for Experimental Design, `PhysicsCourtConclusion.tsx` for Physics Court — and
-only via a lazy `await import(...)`, so the answer key ships as its own JS chunk, not bundled into
-the code every visitor downloads on page load. There is no separate hidden "teacher-only" view
-anymore: the reveal is just the next step in the same flow, available to whoever is running the
-lesson. A Vitest test (`src/activities/answerIsolation.test.ts`) enforces the separation by
-scanning the source tree for the literal string `"answers"` and failing if it turns up anywhere it
-shouldn't — `answers.ts` files, `AnswerReveal.tsx`, and `PhysicsCourtConclusion.tsx` are the only
-allowed exceptions.
+`questions.ts` is imported everywhere. `answers.ts` is imported **only** by
+`PhysicsCourtConclusion.tsx`, Physics Court's reveal step, via a lazy `await import(...)`, so the
+answer key ships as its own JS chunk rather than bundled into the code every visitor downloads on
+page load. Experimental Design has no reveal step at all anymore — its `answers.ts` is validated
+content data (see `npm run validate`) that nothing in the running app imports. A Vitest test
+(`src/activities/answerIsolation.test.ts`) enforces the separation by scanning the source tree for
+the literal string `"answers"` and failing if it turns up anywhere it shouldn't — `answers.ts`
+files and `PhysicsCourtConclusion.tsx` are the only allowed exceptions.
 
 ## Prerequisite tags: `requiredUnits` is AND, not OR
 
@@ -126,19 +134,27 @@ it never removes any.
 `topicTags` is different: it's free-text and descriptive only ("circular motion", "SHM"), shown
 on screen for context, and **never** used to decide eligibility.
 
+Both activities use `requiredUnits` live. Physics Court balances across units every cycle (see
+below); Experimental Design just includes every question tagged to a checked unit, in a fixed
+bank order — no sampling, since a substitute checking a unit should see everything the bank has
+for it, not a random subset.
+
 ## The balanced sampler
 
 `src/utilities/balancedSample.ts` builds one pool per selected unit, puts each question (even a
 multi-unit one) into the pool for its *scarcest* required unit, shuffles each pool with a seeded
 RNG, and round-robins across pools until the target count is filled or every pool runs dry. It
 never shuffles the whole bank and slices off the top — that would let one heavily stocked unit
-crowd out a thinly stocked one. Physics Court uses it directly; Experimental Design's one-per-unit
-case only needs the plain `shuffle` helper from `utilities/rng.ts`.
+crowd out a thinly stocked one. Only Physics Court uses it (see `shuffleLap` in
+`physicsCourtGenerator.ts`) — Experimental Design's `buildWorksheet` just includes every question
+for each checked unit, in the bank's declared order; there's nothing to sample or shuffle since
+every question for a checked unit is shown, not a random pick from it.
 
-**Same seed + same selections → the identical worksheet or cycle, every time.** That's what lets
-you type a seed from one class section into another section's Advanced Options and run the two
+**Same seed + same units → the identical Physics Court cycle, every time.** That's what lets you
+type a seed from one class section into another section's Advanced Options and run the two
 sections in sync. If no seed is given, a short one like `k7m2-q4x9` is generated so it's easy to
-read aloud and retype — it's always shown in the header.
+read aloud and retype — it's always shown in the header. Experimental Design has unit checkboxes
+but no seed (there's nothing to randomize), so this only applies to Physics Court.
 
 ## Physics Court
 
@@ -227,32 +243,42 @@ Resuming an in-progress session skips both (the class has already seen them this
 
 **Location:** `src/activities/experimentalDesign/`
 
-Students design — but never run — an experiment under explicit, airtight restrictions
-(`restrictions: string[]`). The bank holds **exactly one prompt per unit** (six total), each
-measuring something deliberately unusual to force real thinking rather than a familiar textbook
-setup — determining the mass of an object with no scale (via a collision, and separately via an
-oscillating rubber band), telling a raw egg from a hard-boiled one without opening either, finding
-a falling coffee filter's terminal velocity, sorting out whether a coasting bicycle wheel loses
-more speed to air resistance or axle friction, and recovering a rubber band's stored elastic
-energy without cutting it open.
+Groups design — but never run — an experiment under explicit, airtight restrictions
+(`restrictions: string[]`). The bank holds **14 prompts across six units — 3 kinematics, 3
+forces, 2 each for energy, momentum, rotation, and oscillations** — each measuring something
+deliberately unusual to force real thinking rather than a familiar textbook setup: determining
+mass with no scale (via a two-person recoil push-off, a collision, and an oscillating rubber
+band), telling a raw egg from a hard-boiled one without opening either, identifying a solid vs.
+hollow cylinder by racing them down a ramp, a falling coffee filter's terminal velocity, reaction
+time measured without any electronic timer, sorting out whether a coasting bicycle wheel loses
+more speed to air resistance or axle friction, locating an off-center mass by balance point alone,
+and testing the (false) belief that a heavier swinger completes each swing more slowly.
 
-There are no rounds or difficulty bands anymore — `experimentalDesignGenerator.ts`'s
-`buildWorksheet` just returns one experiment per selected unit, shuffled into a worksheet order,
-and `ExperimentalDesign.tsx` renders them all as cards with an `AnswerReveal` each. Selecting fewer
-units just makes a shorter worksheet; there's no minimum-pool "block Start" threshold the way
-Physics Court has, since one prompt per unit is already the whole bank for that unit.
+`ExperimentalDesignSetup.tsx` combines instructions for the substitute (groups of 3–4, paper and
+pencil only, design don't run, scroll for more scenarios as groups finish, effort matters more
+than finishing all of them, and turn in everyone's-name-labeled work at the end) with the same
+unit checkboxes Physics Court uses. Checking a unit includes every prompt tagged to it — 2 or 3,
+not just 1 — in the bank's fixed declared order; there's no seed and no randomization.
+`ExperimentalDesign.tsx` then renders the selected prompts as stacked cards, each sized to roughly
+half the viewport height so about two scenarios are visible on screen at a time and the rest is a
+scroll away. No timer, no answer reveal, no session persistence: reloading the page (or
+unchecking every unit) just goes back to the instructions screen.
 
 `possibleApproaches` (in `answers.ts`) must list at least two genuinely different methods, unless
-the question explicitly sets `singleValidApproach: true`.
+the question explicitly sets `singleValidApproach: true` — this is still validated content data
+even though nothing in the app displays it; see "Why questions and answers are separate files"
+above.
 
 ## Alien Physics Worksheet.docx
 
 Alien Physics isn't part of the site anymore, but its question bank was strong content — made-up
 laws from fictional worlds, solved with calculus/algebra/vector skills rather than real physics —
 so it lives on as a standalone Word document instead of an interactive page. It's a static
-worksheet: statements of each fictional law, the problem, and (for error-analysis items) a
-fictional student's flawed numbered steps to critique, followed by a separately labeled
-**Differential Equations** section, then an answer key at the end. Print it, or open it in Word.
+worksheet of 30 problems: statements of each fictional law, the problem, and (for error-analysis
+items) a fictional student's flawed numbered steps to critique — 25 mixed together, then 5 more
+collected in a separately labeled **Differential Equations** section, then an answer key for all
+30 at the end. Print it, or open it in Word. The source content lives in a standalone Node script
+(not part of this repo's build), since it has no other consumer.
 
 ## Validation
 
@@ -267,7 +293,7 @@ versa, `difficulty` is an integer 1–5, every `requiredUnits` entry is a real u
 `validRewrite`, every Physics Court question has non-empty `assumptions`, `possibleApproaches` has
 at least two entries unless `singleValidApproach` is set, every referenced graph has real data,
 Physics Court has a non-empty eligible pool when all units are selected, and Experimental Design
-has exactly one prompt per unit.
+matches its target per-unit counts (3 kinematics, 3 forces, 2 each for the rest).
 
 This is the same check that runs in CI before every deploy (see `.github/workflows/deploy.yml`) —
 a content mistake fails the deploy, not just a local warning.

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { MathContent } from '../../components/MathContent';
 import { SessionResumeDialog } from '../../components/SessionResumeDialog';
 import { TagBadge } from '../../components/TagBadge';
-import { Timer } from '../../components/Timer';
 import { generateReadableSeed } from '../../utilities/rng';
 import { useSession } from '../../session/useSession';
 import type { LessonSession } from '../../session/sessionTypes';
@@ -124,7 +123,6 @@ export function PhysicsCourt() {
           </p>
         </div>
         <div className="row" data-print="hide">
-          <Timer />
           <span className="badge">seed: {session.seed}</span>
           <button className="button" onClick={endSession}>
             End lesson

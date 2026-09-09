@@ -1,40 +1,47 @@
 import { useState } from 'react';
-import { AdvancedOptions } from '../../components/AdvancedOptions';
 import { UnitSelector } from '../../components/UnitSelector';
 import type { PhysicsUnit } from '../../types';
-import { countEligible } from './experimentalDesignGenerator';
 
 interface ExperimentalDesignSetupProps {
-  onStart: (selectedUnits: PhysicsUnit[], seed: string) => void;
+  onStart: (selectedUnits: PhysicsUnit[]) => void;
 }
 
+/** The only screen before the scenarios — instructions for the substitute, plus which units to include. */
 export function ExperimentalDesignSetup({ onStart }: ExperimentalDesignSetupProps) {
   const [selectedUnits, setSelectedUnits] = useState<PhysicsUnit[]>([]);
-  const [seed, setSeed] = useState('');
-
-  const eligible = countEligible(selectedUnits);
   const blocked = selectedUnits.length === 0;
 
   return (
     <div className="page stack">
       <h1>Experimental Design</h1>
-      <p className="text-muted">
-        One deliberately strange thing to measure per unit — students design (but never run) an
-        experiment, under explicit restrictions. There is no single right answer — you are grading
-        whether the plan is airtight, not adjudicating physics.
-      </p>
       <div className="card stack">
+        <p>Tell the class:</p>
+        <ul>
+          <li>Get into groups of 3 or 4.</li>
+          <li>
+            Each group will be <strong>designing</strong> an experiment, not running one — paper and
+            pencil (or pen) only, no other materials.
+          </li>
+          <li>Each group will be shown a scenario and needs to design an experiment to measure what it asks for.</li>
+          <li>
+            When a group finishes a scenario, tell them to move on — you can scroll down for more. Two
+            scenarios fit on the screen at once.
+          </li>
+          <li>Groups don't need to finish every scenario, but should show real evidence of effort on each one they attempt.</li>
+          <li>
+            Each group should write <strong>everyone's name</strong> on what they write, and turn it in to
+            you at the end of class.
+          </li>
+        </ul>
+        <p>
+          <strong>Substitute:</strong> please leave everything the groups turn in for me.
+        </p>
+
         <UnitSelector selected={selectedUnits} onChange={setSelectedUnits} />
-        <AdvancedOptions seed={seed} onSeedChange={setSeed} />
-        {blocked ? (
-          <p style={{ color: 'var(--color-danger)' }}>Select at least one unit to generate a worksheet.</p>
-        ) : (
-          <p className="text-muted" style={{ margin: 0 }}>
-            {eligible} experiment{eligible === 1 ? '' : 's'} on this worksheet.
-          </p>
-        )}
-        <button className="button button-primary" disabled={blocked} onClick={() => onStart(selectedUnits, seed)}>
-          Generate worksheet
+        {blocked && <p style={{ color: 'var(--color-danger)' }}>Select at least one unit to include its scenario.</p>}
+
+        <button className="button button-primary" disabled={blocked} onClick={() => onStart(selectedUnits)}>
+          Show scenarios
         </button>
       </div>
     </div>

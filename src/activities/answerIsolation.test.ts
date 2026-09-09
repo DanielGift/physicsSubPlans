@@ -3,19 +3,18 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 // Student-facing components must never import the answer key module (BUILD-SPEC.md §3). This
-// walks src/ and asserts that only answer-key files, PhysicsCourtConclusion.tsx, and
-// AnswerReveal.tsx are allowed to mention "answers" at all.
+// walks src/ and asserts that only answer-key files and PhysicsCourtConclusion.tsx are
+// allowed to mention "answers" at all.
 //
-// These are the reveal step of each activity, shown to the whole room on request — there is
-// no more hidden teacher-only view — and both read the answer key via a lazy
-// `await import(...)` so the data still doesn't ship in the initial bundle.
+// PhysicsCourtConclusion.tsx is the reveal step of the Physics Court cycle, shown to the
+// whole room on request, and reads the answer key via a lazy `await import(...)` so the
+// data still doesn't ship in the initial bundle. Experimental Design has no reveal step at
+// all — its answers.ts is validated content data only, never imported by any component.
 
 const SRC_ROOT = join(__dirname, '..');
 
 function isAllowed(path: string): boolean {
-  return (
-    path.endsWith('/answers.ts') || path.endsWith('PhysicsCourtConclusion.tsx') || path.endsWith('AnswerReveal.tsx')
-  );
+  return path.endsWith('/answers.ts') || path.endsWith('PhysicsCourtConclusion.tsx');
 }
 
 function walk(dir: string): string[] {

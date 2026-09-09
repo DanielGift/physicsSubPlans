@@ -1,12 +1,7 @@
-import { AnswerReveal } from '../../components/AnswerReveal';
+import { useState } from 'react';
 import { MathContent } from '../../components/MathContent';
-import { SessionResumeDialog } from '../../components/SessionResumeDialog';
 import { TagBadge } from '../../components/TagBadge';
-import { Timer } from '../../components/Timer';
-import type { LessonSession } from '../../session/sessionTypes';
-import { useSession } from '../../session/useSession';
 import type { PhysicsUnit } from '../../types';
-import { createRng, generateReadableSeed } from '../../utilities/rng';
 import { ExperimentalDesignSetup } from './ExperimentalDesignSetup';
 import { buildWorksheet } from './experimentalDesignGenerator';
 import { experimentalDesignQuestions } from './questions';
@@ -18,9 +13,12 @@ function PromptCard({ questionId, number }: { questionId: string; number: number
   if (!question) return null;
 
   return (
-    <div className="card stack">
+    <div
+      className="card stack"
+      style={{ minHeight: '45vh', justifyContent: 'center', boxSizing: 'border-box' }}
+    >
       <div className="row" style={{ justifyContent: 'space-between' }}>
-        <strong>Experiment {number}</strong>
+        <strong>Scenario {number}</strong>
         <TagBadge label={`difficulty ${question.difficulty}`} />
       </div>
       <MathContent text={question.prompt} />
@@ -32,44 +30,16 @@ function PromptCard({ questionId, number }: { questionId: string; number: number
           ))}
         </ul>
       </div>
-      <AnswerReveal questionId={questionId} />
     </div>
   );
 }
 
 export function ExperimentalDesign() {
-  const { session, resumableSession, startSession, resume, discardResumable, endSession } =
-    useSession('experimental-design');
+  const [questionIds, setQuestionIds] = useState<string[] | null>(null);
 
-  function handleStart(selectedUnits: PhysicsUnit[], seedInput: string) {
-    const seed = seedInput || generateReadableSeed();
-    const questionIds = buildWorksheet(selectedUnits, createRng(seed));
-    const next: LessonSession = {
-      version: 1,
-      activityId: 'experimental-design',
-      seed,
-      createdAt: new Date().toISOString(),
-      selectedUnits,
-      rounds: [{ roundId: 'worksheet', questionIds }],
-      currentRoundIndex: 0,
-      currentQuestionIndex: 0,
-    };
-    startSession(next);
+  if (!questionIds) {
+    return <ExperimentalDesignSetup onStart={(selectedUnits: PhysicsUnit[]) => setQuestionIds(buildWorksheet(selectedUnits))} />;
   }
-
-  if (resumableSession) {
-    return (
-      <div className="page stack">
-        <SessionResumeDialog onResume={resume} onDiscard={discardResumable} />
-      </div>
-    );
-  }
-
-  if (!session) {
-    return <ExperimentalDesignSetup onStart={handleStart} />;
-  }
-
-  const questionIds = session.rounds[0]?.questionIds ?? [];
 
   return (
     <div className="page stack">
@@ -77,14 +47,12 @@ export function ExperimentalDesign() {
         <div>
           <h1 style={{ margin: 0 }}>Experimental Design</h1>
           <p className="text-muted" style={{ margin: 0 }}>
-            {questionIds.length} experiment{questionIds.length === 1 ? '' : 's'} — work them in any order.
+            {questionIds.length} scenario{questionIds.length === 1 ? '' : 's'} — scroll down as groups finish.
           </p>
         </div>
-        <div className="row" data-print="hide">
-          <Timer />
-          <span className="badge">seed: {session.seed}</span>
-          <button className="button" onClick={endSession}>
-            New worksheet
+        <div data-print="hide">
+          <button className="button" onClick={() => setQuestionIds(null)}>
+            Back to instructions
           </button>
         </div>
       </header>
